@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/screens/login_screen.dart';
-import '../../features/auth/presentation/screens/onboarding_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/verify_otp_screen.dart';
@@ -25,13 +24,6 @@ abstract final class AppRouter {
         name: AppRoutes.splashName,
         builder: (BuildContext context, GoRouterState state) {
           return const SplashScreen();
-        },
-      ),
-      GoRoute(
-        path: AppRoutes.onboarding,
-        name: AppRoutes.onboardingName,
-        builder: (BuildContext context, GoRouterState state) {
-          return const OnboardingScreen();
         },
       ),
       GoRoute(

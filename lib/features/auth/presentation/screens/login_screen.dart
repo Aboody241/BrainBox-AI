@@ -81,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
-                      const SizedBox(height: AppSpacing.xl),
+                      const SizedBox(height: AppSpacing.xxs),
                       // App Logo from assets/logos/Logo.svg
                       Center(
                         child: SvgPicture.asset(
@@ -320,6 +320,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 20)
                     ],
                   ),
                 ),

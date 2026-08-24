@@ -70,7 +70,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: AppCenteredContent(
           maxWidth: AppBreakpoints.maxFormWidth,
           padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xl,
+            horizontal: AppSpacing.lg,
             vertical: AppSpacing.md,
           ),
           child: ListenableBuilder(
@@ -84,7 +84,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: AppSpacing.xs),
                       // Top Back Button Card
                       Container(
                         width: 44,
@@ -110,7 +109,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           onPressed: () => context.pop(),
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.xl),
+                      const SizedBox(height: 100),
 
                       // Heading Title
                       Text(
@@ -360,6 +359,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 20,)
                     ],
                   ),
                 ),

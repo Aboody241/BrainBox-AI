@@ -34,7 +34,7 @@ class _SplashScreenState extends State<SplashScreen> {
       _currentStep = 2;
     });
 
-    // Step 2 -> Navigate to Onboarding or Home after another 1.2 seconds
+    // Step 2 -> Navigate to Login or Home after another 1.2 seconds
     await Future<void>.delayed(const Duration(milliseconds: 1200));
     if (!mounted) return;
 
@@ -46,7 +46,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (authVm.currentUser != null && authVm.currentUser!.isLoggedIn) {
       context.go(AppRoutes.home);
     } else {
-      context.go(AppRoutes.onboarding);
+      context.go(AppRoutes.login);
     }
   }
 
