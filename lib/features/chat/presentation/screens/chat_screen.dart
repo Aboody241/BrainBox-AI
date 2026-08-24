@@ -354,14 +354,11 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildAiBubble(ChatMessageItem item) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.lg,
-      ),
+      margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F8FA),
-        borderRadius: BorderRadius.circular(16),
+        color: const Color(0xFFF6F7F9),
+        borderRadius: BorderRadius.circular(22),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -372,17 +369,17 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
               // BrainBox Avatar
               Container(
-                width: 36,
-                height: 36,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(10),
+                  color: const Color(0xFF141718),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(
                   child: SvgPicture.asset(
                     'assets/logos/Logo.svg',
-                    width: 20,
-                    height: 20,
+                    width: 22,
+                    height: 22,
                     colorFilter: const ColorFilter.mode(
                       Colors.white,
                       BlendMode.srcIn,
@@ -392,11 +389,14 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               // Action Buttons (Copy & Share)
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
+                    padding: const EdgeInsets.all(4),
+                    constraints: const BoxConstraints(),
                     icon: const Icon(
                       Icons.content_copy_outlined,
-                      size: 20,
+                      size: 21,
                       color: Color(0xFF9CA3AF),
                     ),
                     tooltip: 'Copy',
@@ -408,10 +408,13 @@ class _ChatScreenState extends State<ChatScreen> {
                       );
                     },
                   ),
+                  const SizedBox(width: AppSpacing.md),
                   IconButton(
+                    padding: const EdgeInsets.all(4),
+                    constraints: const BoxConstraints(),
                     icon: const Icon(
                       Icons.share_outlined,
-                      size: 20,
+                      size: 21,
                       color: Color(0xFF9CA3AF),
                     ),
                     tooltip: 'Share',
@@ -432,9 +435,10 @@ class _ChatScreenState extends State<ChatScreen> {
           RichText(
             text: TextSpan(
               style: AppTypography.bodyMedium.copyWith(
-                color: AppColors.textPrimary,
-                fontSize: 14.5,
-                height: 1.55,
+                color: const Color(0xFF2C2F38),
+                fontSize: 15,
+                height: 1.6,
+                fontWeight: FontWeight.w400,
               ),
               children: [
                 TextSpan(text: item.text),
@@ -442,9 +446,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   const TextSpan(
                     text: ' █',
                     style: TextStyle(
-                      color: AppColors.textPrimary,
+                      color: Color(0xFF141718),
                       fontWeight: FontWeight.bold,
-                      fontSize: 13,
+                      fontSize: 14,
                     ),
                   ),
               ],
