@@ -8,6 +8,7 @@ import '../../../../core/presentation/theme/app_colors.dart';
 import '../../../../core/presentation/theme/app_spacing.dart';
 import '../../../../core/presentation/theme/app_typography.dart';
 import '../../../../core/presentation/widgets/widgets.dart';
+import '../../../settings/presentation/screens/settings_screen.dart';
 import '../widgets/recent_chats_view.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -24,11 +25,21 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: _selectedNavIndex == 1
-          ? const RecentChatsView()
-          : _buildWelcomeHomeBody(),
+      body: _buildCurrentBody(),
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
+  }
+
+  Widget _buildCurrentBody() {
+    switch (_selectedNavIndex) {
+      case 1:
+        return const RecentChatsView();
+      case 2:
+        return const SettingsScreen();
+      case 0:
+      default:
+        return _buildWelcomeHomeBody();
+    }
   }
 
   Widget _buildWelcomeHomeBody() {
@@ -168,10 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildNavItem(
               index: 2,
               icon: Icons.person_outline_rounded,
-              onTap: () {
-                setState(() => _selectedNavIndex = 2);
-                context.push(AppRoutes.settings);
-              },
+              onTap: () => setState(() => _selectedNavIndex = 2),
             ),
           ],
         ),
