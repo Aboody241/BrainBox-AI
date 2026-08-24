@@ -311,7 +311,7 @@ class _RecentChatsViewState extends State<RecentChatsView> {
             padding: const EdgeInsets.only(right: AppSpacing.sm),
             child: ChoiceChip(
               label: Text(
-                filter == 'Pinned' ? 'Pinned 📌' : filter,
+                filter == 'Pinned' ? 'Pinned' : filter,
                 style: TextStyle(
                   color: isSelected ? Colors.white : const Color(0xFF6B7280),
                   fontSize: 13,
@@ -320,6 +320,7 @@ class _RecentChatsViewState extends State<RecentChatsView> {
               ),
               selected: isSelected,
               selectedColor: AppColors.primary,
+              checkmarkColor: isSelected ? Colors.white : const Color(0xFF6B7280),
               backgroundColor: Colors.white,
               elevation: 0,
               pressElevation: 0,

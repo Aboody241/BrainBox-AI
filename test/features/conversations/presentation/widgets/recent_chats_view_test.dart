@@ -30,7 +30,7 @@ void main() {
       );
 
       // Tap Pinned filter chip
-      await tester.tap(find.text('Pinned 📌'));
+      await tester.tap(find.text('Pinned'));
       await tester.pumpAndSettle();
 
       expect(find.text('Quantum Computing Concepts'), findsOneWidget);
