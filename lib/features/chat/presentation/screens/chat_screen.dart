@@ -13,6 +13,11 @@ import '../../../../core/presentation/theme/app_colors.dart';
 import '../../../../core/presentation/theme/app_spacing.dart';
 import '../../../../core/presentation/theme/app_typography.dart';
 import '../../../../core/presentation/widgets/widgets.dart';
+import '../../../conversations/domain/entities/conversation.dart';
+import '../../../conversations/domain/repositories/conversation_repository.dart';
+import '../../../conversations/domain/usecases/get_chat_history_usecase.dart';
+import '../../../conversations/domain/usecases/save_chat_history_usecase.dart';
+import '../../../conversations/domain/usecases/save_conversation_usecase.dart';
 import '../../domain/entities/chat_message.dart';
 import '../../domain/usecases/stream_chat_response_usecase.dart';
 import '../widgets/chat_markdown_view.dart';
@@ -35,6 +40,30 @@ class ChatMessageItem {
     this.imageBytes,
     this.imagePath,
   });
+
+  ChatMessage toEntity() {
+    return ChatMessage(
+      id: id,
+      content: text,
+      isUser: isUser,
+      timestamp: timestamp,
+      isStreaming: isStreaming,
+      imageBytes: imageBytes,
+      imagePath: imagePath,
+    );
+  }
+
+  factory ChatMessageItem.fromEntity(ChatMessage entity) {
+    return ChatMessageItem(
+      id: entity.id,
+      text: entity.content,
+      isUser: entity.isUser,
+      timestamp: entity.timestamp,
+      isStreaming: entity.isStreaming,
+      imageBytes: entity.imageBytes,
+      imagePath: entity.imagePath,
+    );
+  }
 }
 
 class ChatScreen extends StatefulWidget {
@@ -72,12 +101,83 @@ class _ChatScreenState extends State<ChatScreen> {
       'Quantum computing is a new type of computing that the principles of quantum mechanics to process information. While traditional computers use bits to represent and process data, which can be eithe quantum computers use quantum bits, or which can represent 0, 1, or both simultaneously';
 
   @override
+  void initState() {
+    super.initState();
+    _loadChatHistory();
+  }
+
+  @override
   void dispose() {
     _streamSubscription?.cancel();
     _streamTimer?.cancel();
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadChatHistory() async {
+    if (widget.conversationId.isEmpty) return;
+
+    if (sl.isRegistered<GetChatHistoryUseCase>()) {
+      final getHistory = sl<GetChatHistoryUseCase>();
+      final result = await getHistory(widget.conversationId);
+      result.when(
+        success: (history) {
+          if (!mounted) return;
+          if (history.isNotEmpty) {
+            setState(() {
+              _messages.clear();
+              _messages.addAll(history.map(ChatMessageItem.fromEntity));
+            });
+            _scrollToBottom();
+          }
+        },
+        failure: (_) {},
+      );
+    }
+  }
+
+  Future<void> _persistCurrentChat() async {
+    if (widget.conversationId.isEmpty || _messages.isEmpty) return;
+
+    final entities = _messages.map((m) => m.toEntity()).toList();
+
+    // 1. Save messages
+    if (sl.isRegistered<SaveChatHistoryUseCase>()) {
+      final saveHistory = sl<SaveChatHistoryUseCase>();
+      await saveHistory(widget.conversationId, entities);
+    }
+
+    // 2. Save / Update conversation summary
+    if (sl.isRegistered<SaveConversationUseCase>()) {
+      final saveConversation = sl<SaveConversationUseCase>();
+      final firstUser = _messages.firstWhere(
+        (m) => m.isUser,
+        orElse: () => _messages.first,
+      );
+      final rawTitle = firstUser.text.trim();
+      final title = rawTitle.isNotEmpty
+          ? (rawTitle.length > 40 ? '${rawTitle.substring(0, 40)}...' : rawTitle)
+          : 'Image Analysis';
+
+      final lastAi = _messages.lastWhere(
+        (m) => !m.isUser,
+        orElse: () => _messages.last,
+      );
+      final rawLast = lastAi.text.trim();
+      final lastMessage = rawLast.length > 90
+          ? '${rawLast.substring(0, 90)}...'
+          : rawLast;
+
+      final conv = Conversation(
+        id: widget.conversationId,
+        title: title,
+        lastMessage: lastMessage.isEmpty ? 'Image attached' : lastMessage,
+        updatedAt: DateTime.now(),
+        isPinned: false,
+      );
+      await saveConversation(conv);
+    }
   }
 
   void _scrollToBottom() {
@@ -104,6 +204,7 @@ class _ChatScreenState extends State<ChatScreen> {
           _messages.last.isStreaming = false;
         }
       });
+      _persistCurrentChat();
     }
   }
 
@@ -286,6 +387,7 @@ class _ChatScreenState extends State<ChatScreen> {
             aiMsg.isStreaming = false;
             _isGenerating = false;
           });
+          _persistCurrentChat();
         },
         onDone: () {
           if (!mounted) return;
@@ -293,6 +395,7 @@ class _ChatScreenState extends State<ChatScreen> {
             aiMsg.isStreaming = false;
             _isGenerating = false;
           });
+          _persistCurrentChat();
         },
         cancelOnError: true,
       );
@@ -325,6 +428,7 @@ class _ChatScreenState extends State<ChatScreen> {
               aiMsg.isStreaming = false;
               _isGenerating = false;
             });
+            _persistCurrentChat();
           }
         }
       });
@@ -1000,15 +1104,22 @@ class _ChatScreenState extends State<ChatScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  onTap: () {
+                  onTap: () async {
                     Navigator.of(context).pop();
                     setState(() {
                       _messages.clear();
                     });
-                    AppSnackBar.showSuccess(
-                      context,
-                      message: 'Chat history cleared',
-                    );
+                    if (widget.conversationId.isNotEmpty &&
+                        sl.isRegistered<ConversationRepository>()) {
+                      await sl<ConversationRepository>()
+                          .clearMessages(widget.conversationId);
+                    }
+                    if (context.mounted) {
+                      AppSnackBar.showSuccess(
+                        context,
+                        message: 'Chat history cleared',
+                      );
+                    }
                   },
                 ),
               ],

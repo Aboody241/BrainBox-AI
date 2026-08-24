@@ -2,8 +2,12 @@ import 'package:brain_box_ai/app/app.dart';
 import 'package:brain_box_ai/app/di/service_locator.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 void main() {
   setUp(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
     await ServiceLocator.reset();
     await ServiceLocator.init();
   });

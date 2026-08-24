@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/di/service_locator.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/presentation/theme/app_colors.dart';
 import '../../../../core/presentation/theme/app_spacing.dart';
 import '../../../../core/presentation/theme/app_typography.dart';
 import '../../../../core/presentation/widgets/widgets.dart';
+import '../../domain/usecases/delete_conversation_usecase.dart';
+import '../../domain/usecases/get_conversations_usecase.dart';
+import '../../domain/usecases/rename_conversation_usecase.dart';
+import '../../domain/usecases/toggle_pin_conversation_usecase.dart';
 import 'conversation_card.dart';
 
 class RecentChatsView extends StatefulWidget {
@@ -20,7 +25,9 @@ class _RecentChatsViewState extends State<RecentChatsView> {
   String _selectedFilter = 'All';
   bool _isSearchVisible = false;
 
-  final List<ConversationItem> _conversations = [
+  final List<ConversationItem> _conversations = [];
+
+  static final List<ConversationItem> _fallbackSeedConversations = [
     ConversationItem(
       id: '1',
       title: 'Quantum Computing Concepts',
@@ -64,9 +71,49 @@ class _RecentChatsViewState extends State<RecentChatsView> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _loadConversations();
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadConversations() async {
+    if (sl.isRegistered<GetConversationsUseCase>()) {
+      final getUseCase = sl<GetConversationsUseCase>();
+      final result = await getUseCase();
+      if (!mounted) return;
+
+      result.when(
+        success: (list) {
+          setState(() {
+            _conversations.clear();
+            if (list.isEmpty) {
+              _conversations.addAll(_fallbackSeedConversations);
+            } else {
+              _conversations.addAll(list.map(ConversationItem.fromEntity));
+            }
+          });
+        },
+        failure: (_) {
+          if (_conversations.isEmpty) {
+            setState(() {
+              _conversations.addAll(_fallbackSeedConversations);
+            });
+          }
+        },
+      );
+    } else {
+      if (_conversations.isEmpty) {
+        setState(() {
+          _conversations.addAll(_fallbackSeedConversations);
+        });
+      }
+    }
   }
 
   List<ConversationItem> get _filteredConversations {
@@ -109,320 +156,439 @@ class _RecentChatsViewState extends State<RecentChatsView> {
     return groups;
   }
 
-  void _handlePinToggle(ConversationItem item) {
+  Future<void> _handlePinToggle(ConversationItem item) async {
     setState(() {
       item.isPinned = !item.isPinned;
     });
-    AppSnackBar.showInfo(
-      context,
-      message: item.isPinned
-          ? '"${item.title}" pinned to top'
-          : '"${item.title}" unpinned',
-    );
+
+    if (sl.isRegistered<TogglePinConversationUseCase>()) {
+      final toggleUseCase = sl<TogglePinConversationUseCase>();
+      await toggleUseCase(item.id);
+    }
+
+    if (mounted) {
+      AppSnackBar.showInfo(
+        context,
+        message: item.isPinned
+            ? '"${item.title}" pinned to top'
+            : '"${item.title}" unpinned',
+      );
+    }
   }
 
-  void _handleDelete(ConversationItem item) {
+  Future<void> _handleDelete(ConversationItem item) async {
     setState(() {
       _conversations.remove(item);
     });
 
-    AppSnackBar.showSuccess(
-      context,
-      message: 'Conversation deleted',
-    );
+    if (sl.isRegistered<DeleteConversationUseCase>()) {
+      final deleteUseCase = sl<DeleteConversationUseCase>();
+      await deleteUseCase(item.id);
+    }
+
+    if (mounted) {
+      AppSnackBar.showSuccess(
+        context,
+        message: 'Conversation deleted',
+      );
+    }
   }
 
-  void _handleRename(ConversationItem item, String newTitle) {
+  Future<void> _handleRename(ConversationItem item, String newTitle) async {
     setState(() {
       item.title = newTitle;
     });
-    AppSnackBar.showSuccess(
-      context,
-      message: 'Renamed to "$newTitle"',
+
+    if (sl.isRegistered<RenameConversationUseCase>()) {
+      final renameUseCase = sl<RenameConversationUseCase>();
+      await renameUseCase(item.id, newTitle);
+    }
+
+    if (mounted) {
+      AppSnackBar.showSuccess(
+        context,
+        message: 'Conversation renamed to "$newTitle"',
+      );
+    }
+  }
+
+  Future<void> _navigateToChat(String conversationId) async {
+    await context.pushNamed(
+      AppRoutes.chatName,
+      pathParameters: {'id': conversationId},
     );
+    await _loadConversations();
+  }
+
+  Future<void> _startNewChat() async {
+    final newId = DateTime.now().millisecondsSinceEpoch.toString();
+    await context.pushNamed(
+      AppRoutes.chatName,
+      pathParameters: {'id': newId},
+    );
+    await _loadConversations();
   }
 
   @override
   Widget build(BuildContext context) {
     final filtered = _filteredConversations;
     final grouped = _groupConversations(filtered);
+    final hasItems = filtered.isNotEmpty;
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header Row: Title, Search & New Chat Actions
+        _buildHeader(context),
+
+        const SizedBox(height: AppSpacing.sm),
+
+        // Collapsible Animated Search Bar
+        _buildAnimatedSearchBar(),
+
+        // Filter Chips (All / Pinned)
+        _buildFilterChips(),
+
+        const SizedBox(height: AppSpacing.xs),
+
+        // Grouped Conversations List or Empty State
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: _loadConversations,
+            color: AppColors.primary,
+            child: hasItems
+                ? ListView(
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
+                    ),
+                    padding: const EdgeInsets.only(
+                      bottom: AppSpacing.xxl,
+                    ),
+                    children: [
+                      if (grouped['TODAY']!.isNotEmpty)
+                        _buildDateSection(
+                          title: 'TODAY',
+                          items: grouped['TODAY']!,
+                        ),
+                      if (grouped['YESTERDAY']!.isNotEmpty)
+                        _buildDateSection(
+                          title: 'YESTERDAY',
+                          items: grouped['YESTERDAY']!,
+                        ),
+                      if (grouped['PREVIOUS 7 DAYS']!.isNotEmpty)
+                        _buildDateSection(
+                          title: 'PREVIOUS 7 DAYS',
+                          items: grouped['PREVIOUS 7 DAYS']!,
+                        ),
+                    ],
+                  )
+                : _buildEmptyState(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Header Bar
-            _buildHeaderBar(),
-
-            // Search Bar (if expanded)
-            if (_isSearchVisible) _buildSearchBar(),
-
-            // Filter Chips
-            _buildFilterChips(),
-            const SizedBox(height: AppSpacing.xs),
-
-            // Content List or Empty State
-            Expanded(
-              child: filtered.isEmpty
-                  ? _buildEmptyState()
-                  : _buildGroupedConversationsList(grouped),
+            Text(
+              'Recent chats',
+              style: AppTypography.displayLarge.copyWith(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '${_conversations.length} conversation${_conversations.length == 1 ? '' : 's'} saved',
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.textSecondary,
+                fontSize: 13,
+              ),
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          context.push(AppRoutes.chatPath('new'));
-        },
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        icon: const Icon(Icons.add_rounded, size: 22),
-        label: Text(
-          'New Chat',
-          style: AppTypography.titleSmall.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeaderBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.sm,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'Recent Chats',
-            style: AppTypography.displayMedium.copyWith(
-              fontSize: 26,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          Row(
-            children: [
-              IconButton(
-                onPressed: () {
-                  setState(() {
-                    _isSearchVisible = !_isSearchVisible;
-                    if (!_isSearchVisible) {
-                      _searchController.clear();
-                    }
-                  });
-                },
-                icon: Icon(
-                  _isSearchVisible ? Icons.close_rounded : Icons.search_rounded,
-                  color: AppColors.textPrimary,
-                  size: 24,
-                ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Search Toggle Button
+            IconButton(
+              onPressed: () {
+                setState(() {
+                  _isSearchVisible = !_isSearchVisible;
+                  if (!_isSearchVisible) {
+                    _searchController.clear();
+                  }
+                });
+              },
+              icon: Icon(
+                _isSearchVisible
+                    ? Icons.search_off_rounded
+                    : Icons.search_rounded,
+                color: _isSearchVisible
+                    ? AppColors.primary
+                    : AppColors.textPrimary,
+                size: 24,
               ),
-              IconButton(
-                onPressed: () {
-                  context.push(AppRoutes.chatPath('new'));
-                },
-                icon: const Icon(
-                  Icons.add_circle_outline_rounded,
+              tooltip: 'Search conversations',
+            ),
+            const SizedBox(width: AppSpacing.xxs),
+
+            // Start New Chat Button
+            InkWell(
+              onTap: _startNewChat,
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
                   color: AppColors.primary,
-                  size: 26,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.add_rounded,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'New Chat',
+                      style: AppTypography.labelMedium.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.xs,
-      ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE5E7EB)),
-        ),
-        child: TextField(
-          controller: _searchController,
-          onChanged: (_) => setState(() {}),
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: 'Search conversations...',
-            hintStyle: AppTypography.bodySmall.copyWith(
-              color: const Color(0xFF9CA3AF),
-            ),
-            icon: const Icon(
-              Icons.search_rounded,
-              color: Color(0xFF9CA3AF),
-              size: 20,
-            ),
-            border: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            focusedBorder: InputBorder.none,
-            filled: false,
-            isDense: true,
-            contentPadding: const EdgeInsets.symmetric(vertical: 12),
-          ),
-        ),
-      ),
+  Widget _buildAnimatedSearchBar() {
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
+      child: _isSearchVisible
+          ? Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: const Color(0xFFE5E7EB),
+                    width: 1,
+                  ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x06000000),
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    hintText: 'Search chats by topic or message...',
+                    hintStyle: AppTypography.bodySmall.copyWith(
+                      color: AppColors.textTertiary,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.search_rounded,
+                      size: 20,
+                      color: AppColors.textTertiary,
+                    ),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(
+                              Icons.clear_rounded,
+                              size: 18,
+                              color: AppColors.textTertiary,
+                            ),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() {});
+                            },
+                          )
+                        : null,
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.sm,
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : const SizedBox.shrink(),
     );
   }
 
   Widget _buildFilterChips() {
-    final filters = ['All', 'Pinned'];
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.xs,
-      ),
-      child: Row(
-        children: filters.map((filter) {
-          final isSelected = _selectedFilter == filter;
-          return Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.sm),
-            child: ChoiceChip(
-              label: Text(
-                filter == 'Pinned' ? 'Pinned' : filter,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : const Color(0xFF6B7280),
-                  fontSize: 13,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                ),
-              ),
-              selected: isSelected,
-              selectedColor: AppColors.primary,
-              checkmarkColor: isSelected ? Colors.white : const Color(0xFF6B7280),
-              backgroundColor: Colors.white,
-              elevation: 0,
-              pressElevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(
-                  color: isSelected
-                      ? AppColors.primary
-                      : const Color(0xFFE5E7EB),
-                ),
-              ),
-              onSelected: (_) {
-                setState(() => _selectedFilter = filter);
-              },
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _buildFilterChip('All', _conversations.length),
+            const SizedBox(width: AppSpacing.xs),
+            _buildFilterChip(
+              'Pinned',
+              _conversations.where((c) => c.isPinned).length,
             ),
-          );
-        }).toList(),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildGroupedConversationsList(
-      Map<String, List<ConversationItem>> grouped) {
-    return ListView(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.sm,
+  Widget _buildFilterChip(String label, int count) {
+    final isSelected = _selectedFilter == label;
+    return ChoiceChip(
+      label: Text('$label ($count)'),
+      selected: isSelected,
+      onSelected: (selected) {
+        if (selected) {
+          setState(() => _selectedFilter = label);
+        }
+      },
+      checkmarkColor: isSelected ? Colors.white : AppColors.textSecondary,
+      labelStyle: AppTypography.labelMedium.copyWith(
+        color: isSelected ? Colors.white : AppColors.textSecondary,
+        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+        fontSize: 12.5,
       ),
+      backgroundColor: Colors.white,
+      selectedColor: AppColors.primary,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(
+          color: isSelected ? AppColors.primary : const Color(0xFFE5E7EB),
+          width: 1,
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    );
+  }
+
+  Widget _buildDateSection({
+    required String title,
+    required List<ConversationItem> items,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        for (final entry in grouped.entries)
-          if (entry.value.isNotEmpty) ...[
-            Padding(
-              padding: const EdgeInsets.only(
-                top: AppSpacing.md,
-                bottom: AppSpacing.xs,
-                left: 4,
-              ),
-              child: Text(
-                entry.key,
-                style: AppTypography.labelMedium.copyWith(
-                  color: const Color(0xFF9CA3AF),
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8,
-                ),
-              ),
+        Padding(
+          padding: const EdgeInsets.only(
+            top: AppSpacing.md,
+            bottom: AppSpacing.xs,
+            left: 2,
+          ),
+          child: Text(
+            title,
+            style: AppTypography.labelMedium.copyWith(
+              color: AppColors.textTertiary,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.8,
             ),
-            for (final item in entry.value)
-              ConversationCard(
-                conversation: item,
-                onTap: () => context.push(AppRoutes.chatPath(item.id)),
-                onPinToggle: () => _handlePinToggle(item),
-                onDelete: () => _handleDelete(item),
-                onRename: (newTitle) => _handleRename(item, newTitle),
-              ),
-          ],
-        const SizedBox(height: 80), // Padding for FAB
+          ),
+        ),
+        ...items.map(
+          (conversation) => Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+            child: ConversationCard(
+              conversation: conversation,
+              onTap: () => _navigateToChat(conversation.id),
+              onPinToggle: () => _handlePinToggle(conversation),
+              onDelete: () => _handleDelete(conversation),
+              onRename: (newTitle) => _handleRename(conversation, newTitle),
+            ),
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildEmptyState() {
+    final isSearching = _searchController.text.trim().isNotEmpty;
+
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: const BoxDecoration(
-                color: Color(0xFFECEEF1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.chat_bubble_outline_rounded,
-                size: 38,
-                color: Color(0xFF9CA3AF),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              'No Recent Chats',
-              style: AppTypography.titleMedium.copyWith(
-                fontWeight: FontWeight.w700,
-                fontSize: 18,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              'Start a conversation with BrainBox AI to explore any topic or solve complex problems.',
-              textAlign: TextAlign.center,
-              style: AppTypography.bodySmall.copyWith(
-                color: const Color(0xFF9CA3AF),
-                fontSize: 14,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            SizedBox(
-              height: 46,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  context.push(AppRoutes.chatPath('new'));
-                },
-                icon: const Icon(Icons.add_rounded, size: 20),
-                label: const Text('Start New Chat'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: const StadiumBorder(),
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.xxl,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F4F6),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Center(
+                  child: Icon(
+                    isSearching
+                        ? Icons.search_off_rounded
+                        : Icons.chat_bubble_outline_rounded,
+                    size: 34,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                isSearching ? 'No matching chats' : 'No conversations yet',
+                style: AppTypography.titleMedium.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                isSearching
+                    ? 'Try searching with different keywords.'
+                    : 'Start a new conversation with BrainBox AI and it will be saved here.',
+                textAlign: TextAlign.center,
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              if (!isSearching)
+                AppButton(
+                  text: 'Start New Chat',
+                  onPressed: _startNewChat,
+                ),
+            ],
+          ),
         ),
       ),
     );

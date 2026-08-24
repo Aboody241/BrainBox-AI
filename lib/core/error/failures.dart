@@ -103,6 +103,15 @@ final class ParsingFailure extends Failure {
   });
 }
 
+/// Failure caused by cache or key-value storage issues.
+final class CacheFailure extends Failure {
+  const CacheFailure({
+    super.message = 'Cache operation failed.',
+    super.code,
+    super.cause,
+  });
+}
+
 /// Fallback failure for unexpected or unhandled exceptions.
 final class UnknownFailure extends Failure {
   const UnknownFailure({

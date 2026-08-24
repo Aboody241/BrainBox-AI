@@ -4,33 +4,43 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('RecentChatsView Widget Tests', () {
-    testWidgets('renders recent chats title, search button, new chat button, and conversations',
+    testWidgets(
+        'renders recent chats title, search button, new chat button, and conversations',
         (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: RecentChatsView(),
+          home: Scaffold(
+            body: SafeArea(
+              child: RecentChatsView(),
+            ),
+          ),
         ),
       );
+      await tester.pumpAndSettle();
 
-      expect(find.text('Recent Chats'), findsOneWidget);
+      expect(find.text('Recent chats'), findsOneWidget);
       expect(find.byIcon(Icons.search_rounded), findsOneWidget);
-      expect(find.byIcon(Icons.add_circle_outline_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.add_rounded), findsOneWidget);
       expect(find.text('Quantum Computing Concepts'), findsOneWidget);
       expect(find.text('Flutter Clean Architecture Guide'), findsOneWidget);
       expect(find.text('Tokyo 5-Day Travel Plan'), findsOneWidget);
       expect(find.text('New Chat'), findsOneWidget);
     });
 
-    testWidgets('filter chips toggle between All and Pinned',
-        (tester) async {
+    testWidgets('filter chips toggle between All and Pinned', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: RecentChatsView(),
+          home: Scaffold(
+            body: SafeArea(
+              child: RecentChatsView(),
+            ),
+          ),
         ),
       );
+      await tester.pumpAndSettle();
 
       // Tap Pinned filter chip
-      await tester.tap(find.text('Pinned'));
+      await tester.tap(find.textContaining('Pinned'));
       await tester.pumpAndSettle();
 
       expect(find.text('Quantum Computing Concepts'), findsOneWidget);
@@ -38,19 +48,23 @@ void main() {
       expect(find.text('Tokyo 5-Day Travel Plan'), findsNothing);
 
       // Tap All filter chip
-      await tester.tap(find.text('All'));
+      await tester.tap(find.textContaining('All'));
       await tester.pumpAndSettle();
 
       expect(find.text('Tokyo 5-Day Travel Plan'), findsOneWidget);
     });
 
-    testWidgets('searching filters conversations in real time',
-        (tester) async {
+    testWidgets('searching filters conversations in real time', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: RecentChatsView(),
+          home: Scaffold(
+            body: SafeArea(
+              child: RecentChatsView(),
+            ),
+          ),
         ),
       );
+      await tester.pumpAndSettle();
 
       // Open search bar
       await tester.tap(find.byIcon(Icons.search_rounded));

@@ -4,6 +4,8 @@ import '../../../../core/presentation/theme/app_colors.dart';
 import '../../../../core/presentation/theme/app_spacing.dart';
 import '../../../../core/presentation/theme/app_typography.dart';
 
+import '../../domain/entities/conversation.dart';
+
 class ConversationItem {
   final String id;
   String title;
@@ -18,6 +20,26 @@ class ConversationItem {
     required this.updatedAt,
     this.isPinned = false,
   });
+
+  factory ConversationItem.fromEntity(Conversation entity) {
+    return ConversationItem(
+      id: entity.id,
+      title: entity.title,
+      lastMessage: entity.lastMessage,
+      updatedAt: entity.updatedAt,
+      isPinned: entity.isPinned,
+    );
+  }
+
+  Conversation toEntity() {
+    return Conversation(
+      id: id,
+      title: title,
+      lastMessage: lastMessage,
+      updatedAt: updatedAt,
+      isPinned: isPinned,
+    );
+  }
 }
 
 class ConversationCard extends StatelessWidget {
