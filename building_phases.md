@@ -38,7 +38,7 @@ docs/
 - [x] Folder structure setup
 - [x] App theme configuration
 - [x] Centralized routing setup
-- Dependency Injection (GetIt)
+- [x] Dependency Injection (GetIt)
 - Core error system & typed Failure models
 - `Result<T>` abstraction (`Success` / `Failure`)
 - Environment configuration
