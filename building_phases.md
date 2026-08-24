@@ -71,7 +71,7 @@ main.dart
 - **Core Components:**
   - [x] Buttons & Text fields
   - [x] Cards & Containers
-  - Loading indicators & Shimmers
+  - [x] Loading indicators & Shimmers
   - Error banners & SnackBars
   - Empty state placeholders
   - Message bubble components
