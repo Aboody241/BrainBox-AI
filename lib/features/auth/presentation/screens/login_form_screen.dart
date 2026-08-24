@@ -164,15 +164,12 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
                       ),
                       const SizedBox(height: AppSpacing.xs),
 
-                      // Forget Password Link
+                      // Forget Password Link -> Navigates to ForgetPasswordScreen
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           onPressed: () {
-                            AppSnackBar.showInfo(
-                              context,
-                              message: 'Password reset link sent to email',
-                            );
+                            context.push(AppRoutes.forgetPassword);
                           },
                           style: TextButton.styleFrom(
                             foregroundColor: const Color(0xFF9CA3AF),
