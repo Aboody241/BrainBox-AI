@@ -8,6 +8,7 @@ import '../../../../core/presentation/theme/app_colors.dart';
 import '../../../../core/presentation/theme/app_spacing.dart';
 import '../../../../core/presentation/theme/app_typography.dart';
 import '../../../../core/presentation/widgets/widgets.dart';
+import '../widgets/recent_chats_view.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,111 +24,117 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: AppCenteredContent(
-          maxWidth: AppBreakpoints.maxFormWidth,
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xl,
-            vertical: AppSpacing.md,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: AppSpacing.xs),
-              // Top Reusable Back Button
-              const AppBackButton(),
+      body: _selectedNavIndex == 1
+          ? const RecentChatsView()
+          : _buildWelcomeHomeBody(),
+      bottomNavigationBar: _buildBottomNavigationBar(),
+    );
+  }
 
-              // Centered Main Content
-              Expanded(
-                child: Center(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Centered Logo
-                        SvgPicture.asset(
-                          'assets/logos/Logo.svg',
-                          width: 90,
-                          height: 106,
-                          colorFilter: const ColorFilter.mode(
-                            AppColors.primary,
-                            BlendMode.srcIn,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.xxl),
+  Widget _buildWelcomeHomeBody() {
+    return SafeArea(
+      child: AppCenteredContent(
+        maxWidth: AppBreakpoints.maxFormWidth,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xl,
+          vertical: AppSpacing.md,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: AppSpacing.xs),
+            // Top Reusable Back Button
+            const AppBackButton(),
 
-                        // Title
-                        Text(
-                          'Welcome to',
-                          textAlign: TextAlign.center,
-                          style: AppTypography.displayMedium.copyWith(
-                            fontSize: 30,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
-                            height: 1.2,
-                          ),
+            // Centered Main Content
+            Expanded(
+              child: Center(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Centered Logo
+                      SvgPicture.asset(
+                        'assets/logos/Logo.svg',
+                        width: 90,
+                        height: 106,
+                        colorFilter: const ColorFilter.mode(
+                          AppColors.primary,
+                          BlendMode.srcIn,
                         ),
-                        Text(
-                          'BrainBox',
-                          textAlign: TextAlign.center,
-                          style: AppTypography.displayMedium.copyWith(
-                            fontSize: 30,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
-                            height: 1.2,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-
-                        // Subtitle
-                        Text(
-                          'Start chatting with ChattyAI now.\nYou can ask me anything.',
-                          textAlign: TextAlign.center,
-                          style: AppTypography.bodySmall.copyWith(
-                            color: const Color(0xFF9CA3AF),
-                            fontSize: 14,
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-              // Get Started Button
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      context.push(AppRoutes.chatPath('new'));
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      elevation: 4,
-                      shadowColor: AppColors.primary.withValues(alpha: 0.3),
-                      shape: const StadiumBorder(),
-                    ),
-                    child: Text(
-                      'Get Started',
-                      style: AppTypography.titleSmall.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
                       ),
+                      const SizedBox(height: AppSpacing.xxl),
+
+                      // Title
+                      Text(
+                        'Welcome to',
+                        textAlign: TextAlign.center,
+                        style: AppTypography.displayMedium.copyWith(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                          height: 1.2,
+                        ),
+                      ),
+                      Text(
+                        'BrainBox',
+                        textAlign: TextAlign.center,
+                        style: AppTypography.displayMedium.copyWith(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                          height: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+
+                      // Subtitle
+                      Text(
+                        'Start chatting with ChattyAI now.\nYou can ask me anything.',
+                        textAlign: TextAlign.center,
+                        style: AppTypography.bodySmall.copyWith(
+                          color: const Color(0xFF9CA3AF),
+                          fontSize: 14,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // Get Started Button
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              child: SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: () {
+                    context.push(AppRoutes.chatPath('new'));
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    elevation: 4,
+                    shadowColor: AppColors.primary.withValues(alpha: 0.3),
+                    shape: const StadiumBorder(),
+                  ),
+                  child: Text(
+                    'Get Started',
+                    style: AppTypography.titleSmall.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
                     ),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
