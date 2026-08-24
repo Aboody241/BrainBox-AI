@@ -98,7 +98,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: Padding(
                   padding: const EdgeInsets.only(
                     top: AppSpacing.xs,
-                    right: AppSpacing.lg,
+                    right: AppSpacing.xl,
                   ),
                   child: TextButton(
                     onPressed: _finishOnboarding,
@@ -126,27 +126,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     final item = _items[index];
                     return Column(
                       children: [
-                        // Full edge-to-edge Hero Image sticking to phone frame
+                        // Hero Image Card matching mockup with rounded corners and drop shadow
                         Expanded(
                           flex: 6,
-                          child: Container(
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(32),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Color(0x30000000),
-                                  blurRadius: 28,
-                                  offset: Offset(0, 12),
-                                ),
-                              ],
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.xl,
                             ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(32),
-                              child: Image.asset(
-                                item.imagePath,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
+                            child: Container(
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(36),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x35000000),
+                                    blurRadius: 32,
+                                    offset: Offset(0, 14),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(36),
+                                child: Image.asset(
+                                  item.imagePath,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                ),
                               ),
                             ),
                           ),
