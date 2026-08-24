@@ -75,7 +75,7 @@ main.dart
   - [x] Error banners & SnackBars
   - [x] Empty state placeholders
   - [x] Message bubble components
-  - Responsive layout rules
+  - [x] Responsive layout rules
 
 ### الناتج:
 ```text
