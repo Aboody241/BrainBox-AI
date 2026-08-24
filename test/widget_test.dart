@@ -15,8 +15,12 @@ void main() {
   testWidgets('App renders splash route and navigates to login smoke test',
       (WidgetTester tester) async {
     await tester.pumpWidget(const BrainBoxApp());
-    expect(find.text('BrainBox AI'), findsOneWidget);
+    expect(find.text('BrainBox'), findsOneWidget);
+    expect(find.text('Version 1.0'), findsOneWidget);
+
+    await tester.pump(const Duration(milliseconds: 1600));
     await tester.pumpAndSettle();
+
     expect(find.text('Welcome Back'), findsOneWidget);
   });
 }

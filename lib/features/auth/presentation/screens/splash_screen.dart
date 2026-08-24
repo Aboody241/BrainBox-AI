@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/di/service_locator.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/presentation/theme/app_colors.dart';
+import '../../../../core/presentation/theme/app_spacing.dart';
 import '../../../../core/presentation/theme/app_typography.dart';
-import '../../../../core/presentation/widgets/app_loading_indicator.dart';
 import '../viewmodels/auth_view_model.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -23,7 +24,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkAuth() async {
-    await Future<void>.delayed(const Duration(milliseconds: 1200));
+    await Future<void>.delayed(const Duration(milliseconds: 1500));
     final authVm = sl<AuthViewModel>();
     await authVm.checkAuthStatus();
 
@@ -38,24 +39,48 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: AppColors.background,
-      body: Center(
+      body: SafeArea(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.auto_awesome,
-              size: 64,
-              color: AppColors.primary,
+            const Spacer(),
+            Center(
+              child: SvgPicture.asset(
+                'assets/logos/Logo.svg',
+                width: 96,
+                height: 114,
+                colorFilter: const ColorFilter.mode(
+                  AppColors.primary,
+                  BlendMode.srcIn,
+                ),
+              ),
             ),
-            SizedBox(height: 16),
-            Text(
-              'BrainBox AI',
-              style: AppTypography.displayLarge,
+            const Spacer(),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'BrainBox',
+                  style: AppTypography.displayLarge.copyWith(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Version 1.0',
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.textSecondary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+              ],
             ),
-            SizedBox(height: 24),
-            AppLoadingIndicator(size: 28),
           ],
         ),
       ),
