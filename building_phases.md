@@ -70,7 +70,7 @@ main.dart
 - **Design Tokens:** Colors, Typography, Spacing, Radius, Shadows
 - **Core Components:**
   - [x] Buttons & Text fields
-  - Cards & Containers
+  - [x] Cards & Containers
   - Loading indicators & Shimmers
   - Error banners & SnackBars
   - Empty state placeholders
