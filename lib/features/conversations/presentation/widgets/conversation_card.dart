@@ -10,9 +10,6 @@ class ConversationItem {
   final String lastMessage;
   final DateTime updatedAt;
   bool isPinned;
-  final IconData icon;
-  final Color iconBgColor;
-  final Color iconColor;
 
   ConversationItem({
     required this.id,
@@ -20,9 +17,6 @@ class ConversationItem {
     required this.lastMessage,
     required this.updatedAt,
     this.isPinned = false,
-    this.icon = Icons.chat_bubble_outline_rounded,
-    this.iconBgColor = const Color(0xFFECEEF1),
-    this.iconColor = AppColors.primary,
   });
 }
 
@@ -47,7 +41,9 @@ class ConversationCard extends StatelessWidget {
     final difference = now.difference(dateTime);
 
     if (difference.inDays == 0) {
-      final hour = dateTime.hour > 12 ? dateTime.hour - 12 : (dateTime.hour == 0 ? 12 : dateTime.hour);
+      final hour = dateTime.hour > 12
+          ? dateTime.hour - 12
+          : (dateTime.hour == 0 ? 12 : dateTime.hour);
       final minute = dateTime.minute.toString().padLeft(2, '0');
       final period = dateTime.hour >= 12 ? 'PM' : 'AM';
       return '$hour:$minute $period';
@@ -73,9 +69,9 @@ class ConversationCard extends StatelessWidget {
         ),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x06000000),
-            blurRadius: 10,
-            offset: Offset(0, 3),
+            color: Color(0x05000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -86,86 +82,47 @@ class ConversationCard extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(18),
           child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: 15,
+            ),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Topic Squircle Icon
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: conversation.iconBgColor,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      conversation.icon,
-                      color: conversation.iconColor,
-                      size: 22,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-
-                // Title & Last Snippet
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              conversation.title,
-                              style: AppTypography.titleSmall.copyWith(
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (conversation.isPinned) ...[
-                            const SizedBox(width: 4),
-                            const Icon(
-                              Icons.push_pin_rounded,
-                              size: 16,
-                              color: AppColors.primary,
-                            ),
-                          ],
-                        ],
+                // Top Row: Title, Pin Badge, Timestamp & Options
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    if (conversation.isPinned) ...[
+                      const Icon(
+                        Icons.push_pin_rounded,
+                        size: 15,
+                        color: AppColors.primary,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        conversation.lastMessage,
-                        style: AppTypography.bodySmall.copyWith(
-                          color: const Color(0xFF6B7280),
-                          fontSize: 13,
-                          height: 1.35,
+                      const SizedBox(width: 6),
+                    ],
+                    Expanded(
+                      child: Text(
+                        conversation.title,
+                        style: AppTypography.titleSmall.copyWith(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
                         ),
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-
-                // Timestamp & Options
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
                     Text(
                       _formatTimestamp(conversation.updatedAt),
                       style: AppTypography.labelMedium.copyWith(
                         color: const Color(0xFF9CA3AF),
-                        fontSize: 11.5,
+                        fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(width: 4),
                     InkWell(
                       onTap: () => _showOptionsBottomSheet(context),
                       borderRadius: BorderRadius.circular(12),
@@ -173,12 +130,25 @@ class ConversationCard extends StatelessWidget {
                         padding: EdgeInsets.all(4),
                         child: Icon(
                           Icons.more_horiz_rounded,
-                          size: 20,
+                          size: 18,
                           color: Color(0xFF9CA3AF),
                         ),
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 6),
+
+                // Last Message Snippet
+                Text(
+                  conversation.lastMessage,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: const Color(0xFF6B7280),
+                    fontSize: 13.5,
+                    height: 1.4,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),

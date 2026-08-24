@@ -28,9 +28,6 @@ class _RecentChatsViewState extends State<RecentChatsView> {
           'Quantum computing is a new type of computing that uses quantum mechanics to process information.',
       updatedAt: DateTime.now().subtract(const Duration(minutes: 25)),
       isPinned: true,
-      icon: Icons.psychology_outlined,
-      iconBgColor: const Color(0xFFE9EDF5),
-      iconColor: const Color(0xFF2563EB),
     ),
     ConversationItem(
       id: '2',
@@ -39,9 +36,6 @@ class _RecentChatsViewState extends State<RecentChatsView> {
           'Let’s organize the data, domain, and presentation layers with strong separation of concerns.',
       updatedAt: DateTime.now().subtract(const Duration(hours: 3)),
       isPinned: true,
-      icon: Icons.code_rounded,
-      iconBgColor: const Color(0xFFE6F4EA),
-      iconColor: const Color(0xFF16A34A),
     ),
     ConversationItem(
       id: '3',
@@ -50,9 +44,6 @@ class _RecentChatsViewState extends State<RecentChatsView> {
           'Here is your complete itinerary for exploring Shibuya, Asakusa, Akihabara, and Mount Fuji.',
       updatedAt: DateTime.now().subtract(const Duration(days: 1, hours: 2)),
       isPinned: false,
-      icon: Icons.flight_takeoff_rounded,
-      iconBgColor: const Color(0xFFFEF3C7),
-      iconColor: const Color(0xFFD97706),
     ),
     ConversationItem(
       id: '4',
@@ -61,9 +52,6 @@ class _RecentChatsViewState extends State<RecentChatsView> {
           'In a world where memories can be transferred through neural synchronization...',
       updatedAt: DateTime.now().subtract(const Duration(days: 3)),
       isPinned: false,
-      icon: Icons.auto_stories_outlined,
-      iconBgColor: const Color(0xFFF3E8FF),
-      iconColor: const Color(0xFF9333EA),
     ),
     ConversationItem(
       id: '5',
@@ -72,9 +60,6 @@ class _RecentChatsViewState extends State<RecentChatsView> {
           'High protein meal plan combined with 4-day hypertrophy split focus.',
       updatedAt: DateTime.now().subtract(const Duration(days: 5)),
       isPinned: false,
-      icon: Icons.fitness_center_rounded,
-      iconBgColor: const Color(0xFFFFE4E6),
-      iconColor: const Color(0xFFE11D48),
     ),
   ];
 
