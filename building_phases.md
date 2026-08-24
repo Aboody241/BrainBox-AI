@@ -41,8 +41,8 @@ docs/
 - [x] Dependency Injection (GetIt)
 - [x] Core error system & typed Failure models
 - [x] `Result<T>` abstraction (`Success` / `Failure`)
-- Environment configuration
-- App entry point
+- [x] Environment configuration
+- [x] App entry point
 
 ### Architecture:
 ```text
@@ -55,10 +55,10 @@ main.dart
 ```
 
 ### Definition of Done:
-- [ ] `flutter analyze` → **PASS**
-- [ ] `flutter test` → **PASS**
-- [ ] App launches → **PASS**
-- [ ] Clean Architecture boundaries established
+- [x] `flutter analyze` → **PASS**
+- [x] `flutter test` → **PASS**
+- [x] App launches → **PASS**
+- [x] Clean Architecture boundaries established
 
 ---
 
