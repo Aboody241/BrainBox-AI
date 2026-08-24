@@ -12,13 +12,21 @@ void main() {
     await ServiceLocator.reset();
   });
 
-  testWidgets('App renders splash route and navigates to login smoke test',
+  testWidgets(
+      'App renders 2-step splash animation and navigates to login screen',
       (WidgetTester tester) async {
     await tester.pumpWidget(const BrainBoxApp());
+
+    // Step 1: Central Logo + BrainBox
     expect(find.text('BrainBox'), findsOneWidget);
     expect(find.text('Version 1.0'), findsOneWidget);
 
-    await tester.pump(const Duration(milliseconds: 1600));
+    // Step 2: Transition to textSlogan after 1200ms
+    await tester.pump(const Duration(milliseconds: 1300));
+    await tester.pump(const Duration(milliseconds: 600));
+
+    // Step 3: Complete animation and navigate to LoginScreen
+    await tester.pump(const Duration(milliseconds: 1300));
     await tester.pumpAndSettle();
 
     expect(find.text('Welcome Back'), findsOneWidget);

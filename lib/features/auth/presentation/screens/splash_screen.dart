@@ -17,14 +17,27 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  int _currentStep = 1;
+
   @override
   void initState() {
     super.initState();
-    _checkAuth();
+    _startAnimationSequence();
   }
 
-  Future<void> _checkAuth() async {
-    await Future<void>.delayed(const Duration(milliseconds: 1500));
+  Future<void> _startAnimationSequence() async {
+    // Step 1 -> Step 2 after 1.2 seconds
+    await Future<void>.delayed(const Duration(milliseconds: 1200));
+    if (!mounted) return;
+
+    setState(() {
+      _currentStep = 2;
+    });
+
+    // Step 2 -> Navigate after another 1.2 seconds
+    await Future<void>.delayed(const Duration(milliseconds: 1200));
+    if (!mounted) return;
+
     final authVm = sl<AuthViewModel>();
     await authVm.checkAuthStatus();
 
@@ -42,48 +55,90 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Column(
-          children: [
-            const Spacer(),
-            Center(
-              child: SvgPicture.asset(
-                'assets/logos/Logo.svg',
-                width: 96,
-                height: 114,
-                colorFilter: const ColorFilter.mode(
-                  AppColors.primary,
-                  BlendMode.srcIn,
-                ),
-              ),
-            ),
-            const Spacer(),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'BrainBox',
-                  style: AppTypography.displayLarge.copyWith(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Version 1.0',
-                  style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.textSecondary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xl),
-              ],
-            ),
-          ],
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 600),
+          child: _currentStep == 1 ? _buildStep1() : _buildStep2(),
         ),
       ),
+    );
+  }
+
+  Widget _buildStep1() {
+    return Column(
+      key: const ValueKey(1),
+      children: [
+        const Spacer(),
+        Center(
+          child: SvgPicture.asset(
+            'assets/logos/Logo.svg',
+            width: 96,
+            height: 114,
+            colorFilter: const ColorFilter.mode(
+              AppColors.primary,
+              BlendMode.srcIn,
+            ),
+          ),
+        ),
+        const Spacer(),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'BrainBox',
+              style: AppTypography.displayLarge.copyWith(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Version 1.0',
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.textSecondary,
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStep2() {
+    return Column(
+      key: const ValueKey(2),
+      children: [
+        const Spacer(),
+        Center(
+          child: SvgPicture.asset(
+            'assets/logos/textSlogan.svg',
+            width: 180,
+            colorFilter: const ColorFilter.mode(
+              AppColors.primary,
+              BlendMode.srcIn,
+            ),
+          ),
+        ),
+        const Spacer(),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Version 1.0',
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.textSecondary,
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+          ],
+        ),
+      ],
     );
   }
 }
