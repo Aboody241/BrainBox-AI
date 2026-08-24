@@ -69,7 +69,7 @@ main.dart
 ### المهام:
 - **Design Tokens:** Colors, Typography, Spacing, Radius, Shadows
 - **Core Components:**
-  - Buttons & Text fields
+  - [x] Buttons & Text fields
   - Cards & Containers
   - Loading indicators & Shimmers
   - Error banners & SnackBars
