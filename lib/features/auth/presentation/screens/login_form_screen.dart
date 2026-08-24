@@ -61,7 +61,7 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
         child: AppCenteredContent(
           maxWidth: AppBreakpoints.maxFormWidth,
           padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
+            horizontal: AppSpacing.xl,
             vertical: AppSpacing.md,
           ),
           child: ListenableBuilder(
@@ -75,6 +75,7 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      const SizedBox(height: AppSpacing.xs),
                       // Top Back Button Card
                       Container(
                         width: 44,
@@ -100,11 +101,11 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
                           onPressed: () => context.pop(),
                         ),
                       ),
-                      const SizedBox(height: 60),
+                      const SizedBox(height: AppSpacing.xl),
 
-                      // Title
+                      // Heading Title
                       Text(
-                        'Welcome Back',
+                        'Login Your',
                         style: AppTypography.displayMedium.copyWith(
                           fontSize: 30,
                           fontWeight: FontWeight.w700,
@@ -112,20 +113,21 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
                           height: 1.2,
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.xs),
                       Text(
-                        'Sign in to continue with BrainBox AI',
-                        style: AppTypography.bodySmall.copyWith(
-                          color: const Color(0xFF9CA3AF),
-                          fontSize: 14,
+                        'Account',
+                        style: AppTypography.displayMedium.copyWith(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                          height: 1.2,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.xl),
 
-                      // Form Fields
+                      // Input Fields
                       AppTextField(
                         controller: _emailController,
-                        hintText: 'Email Address',
+                        hintText: 'JosephRen@Mail.Com',
                         keyboardType: TextInputType.emailAddress,
                         prefixIcon: const Icon(
                           Icons.mail_outline,
@@ -144,7 +146,7 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
                       const SizedBox(height: AppSpacing.md),
                       AppTextField(
                         controller: _passwordController,
-                        hintText: 'Password',
+                        hintText: '••••••••••••',
                         isPassword: true,
                         prefixIcon: const Icon(
                           Icons.lock_outline,
@@ -160,9 +162,35 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: AppSpacing.xl),
+                      const SizedBox(height: AppSpacing.xs),
 
-                      // Main Sign In Button
+                      // Forget Password Link
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {
+                            AppSnackBar.showInfo(
+                              context,
+                              message: 'Password reset link sent to email',
+                            );
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: const Color(0xFF9CA3AF),
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: Text(
+                            'Forget Password ?',
+                            style: AppTypography.bodySmall.copyWith(
+                              color: const Color(0xFF9CA3AF),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+
+                      // Main Login Button
                       SizedBox(
                         width: double.infinity,
                         height: 52,
@@ -187,7 +215,7 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
                                   ),
                                 )
                               : Text(
-                                  'Sign In',
+                                  'Login',
                                   style: AppTypography.titleSmall.copyWith(
                                     color: Colors.white,
                                     fontWeight: FontWeight.w600,
@@ -196,15 +224,15 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
                                 ),
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.lg),
+                      const SizedBox(height: AppSpacing.md),
 
-                      // Don't have an account? Sign Up
+                      // Create New Account? Sign up
                       Center(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              'Don\'t have an account? ',
+                              'Create New Account? ',
                               style: AppTypography.bodySmall.copyWith(
                                 color: const Color(0xFF9CA3AF),
                                 fontSize: 14,
@@ -215,7 +243,7 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
                                 context.push(AppRoutes.register);
                               },
                               child: Text(
-                                'Sign Up',
+                                'Sign up',
                                 style: AppTypography.titleSmall.copyWith(
                                   color: AppColors.textPrimary,
                                   fontWeight: FontWeight.w700,
@@ -226,6 +254,109 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
                           ],
                         ),
                       ),
+                      const SizedBox(height: AppSpacing.xxl),
+
+                      // Social Divider Text
+                      Center(
+                        child: Text(
+                          'Continue With Accounts',
+                          textAlign: TextAlign.center,
+                          style: AppTypography.bodySmall.copyWith(
+                            color: const Color(0xFF9CA3AF),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+
+                      // Social Buttons Row
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SizedBox(
+                              height: 50,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  _emailController.text = 'user@example.com';
+                                  _passwordController.text = 'password123';
+                                  _handleLogin();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFF8D7D0),
+                                  foregroundColor: const Color(0xFFD9534F),
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Image.asset(
+                                      'assets/icons/icons8-google-96.png',
+                                      width: 20,
+                                      height: 20,
+                                    ),
+                                    const SizedBox(width: AppSpacing.xs),
+                                    Text(
+                                      'GOOGLE',
+                                      style: AppTypography.titleSmall.copyWith(
+                                        color: const Color(0xFFD9534F),
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13,
+                                        letterSpacing: 0.8,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(
+                            child: SizedBox(
+                              height: 50,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  _emailController.text = 'user@example.com';
+                                  _passwordController.text = 'password123';
+                                  _handleLogin();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFD6E2F5),
+                                  foregroundColor: const Color(0xFF3B5998),
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Image.asset(
+                                      'assets/icons/icons8-facebook-96.png',
+                                      width: 20,
+                                      height: 20,
+                                    ),
+                                    const SizedBox(width: AppSpacing.xs),
+                                    Text(
+                                      'FACEBOOK',
+                                      style: AppTypography.titleSmall.copyWith(
+                                        color: const Color(0xFF3B5998),
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13,
+                                        letterSpacing: 0.8,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
                     ],
                   ),
                 ),

@@ -63,17 +63,22 @@ void main() {
   });
 
   group('LoginFormScreen Widget Tests', () {
-    testWidgets('renders welcome back title and form inputs', (tester) async {
+    testWidgets('renders login your account title and form controls',
+        (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: LoginFormScreen(),
         ),
       );
 
-      expect(find.text('Welcome Back'), findsOneWidget);
-      expect(find.text('Email Address'), findsOneWidget);
-      expect(find.text('Password'), findsOneWidget);
-      expect(find.text('Sign In'), findsOneWidget);
+      expect(find.text('Login Your'), findsOneWidget);
+      expect(find.text('Account'), findsOneWidget);
+      expect(find.text('Forget Password ?'), findsOneWidget);
+      expect(find.text('Login'), findsOneWidget);
+      expect(find.text('Create New Account? '), findsOneWidget);
+      expect(find.text('Sign up'), findsOneWidget);
+      expect(find.text('GOOGLE'), findsOneWidget);
+      expect(find.text('FACEBOOK'), findsOneWidget);
     });
   });
 }
