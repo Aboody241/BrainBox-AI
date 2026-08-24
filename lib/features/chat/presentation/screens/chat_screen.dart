@@ -332,8 +332,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   isNotEmpty
                       ? 'assets/icons/Send.svg'
                       : 'assets/icons/send_icon.svg',
-                  width: 24,
-                  height: 24,
+                  width: isNotEmpty? 40 : 24,
+                  height: isNotEmpty? 40 : 24,
                 ),
               );
             },
