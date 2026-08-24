@@ -76,31 +76,8 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: AppSpacing.xs),
-                      // Top Back Button Card
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x0A000000),
-                              blurRadius: 12,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: IconButton(
-                          padding: EdgeInsets.zero,
-                          icon: const Icon(
-                            Icons.chevron_left,
-                            size: 26,
-                            color: AppColors.textPrimary,
-                          ),
-                          onPressed: () => context.pop(),
-                        ),
-                      ),
+                      // Top Reusable Back Button
+                      const AppBackButton(),
                       const SizedBox(height: AppSpacing.xl),
 
                       // Heading Title
@@ -164,7 +141,7 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
                       ),
                       const SizedBox(height: AppSpacing.xs),
 
-                      // Forget Password Link -> Navigates to ForgetPasswordScreen
+                      // Forget Password Link
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(

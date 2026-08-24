@@ -1,4 +1,5 @@
 export 'app_action_tile.dart';
+export 'app_back_button.dart';
 export 'app_badge.dart';
 export 'app_banner.dart';
 export 'app_button.dart';

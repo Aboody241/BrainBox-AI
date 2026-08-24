@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/presentation/responsive/responsive.dart';
 import '../../../../core/presentation/theme/app_colors.dart';
-import '../../../../core/presentation/theme/app_radius.dart';
 import '../../../../core/presentation/theme/app_spacing.dart';
 import '../../../../core/presentation/theme/app_typography.dart';
 import '../../../../core/presentation/widgets/widgets.dart';
@@ -47,78 +46,125 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: AppColors.primary),
-          onPressed: () => context.pop(),
-        ),
-      ),
       body: SafeArea(
         child: AppCenteredContent(
           maxWidth: AppBreakpoints.maxFormWidth,
-          padding: const EdgeInsets.all(AppSpacing.xl),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.xl,
+            vertical: AppSpacing.md,
+          ),
           child: SingleChildScrollView(
-            child: AppCard(
-              borderRadius: AppRadius.roundedXl,
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    widget.isEmail ? 'Verify Email' : 'Verify Phone',
-                    textAlign: TextAlign.center,
-                    style: AppTypography.displayMedium.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w700,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: AppSpacing.xs),
+                // Top Reusable Back Button
+                const AppBackButton(),
+                const SizedBox(height: AppSpacing.xl),
+
+                Text(
+                  widget.isEmail ? 'Verify Email' : 'Verify Phone',
+                  style: AppTypography.displayMedium.copyWith(
+                    fontSize: 30,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  'We Have Sent Code To Your ${widget.isEmail ? "Email" : "Phone Number"}',
+                  style: AppTypography.bodySmall.copyWith(
+                    color: const Color(0xFF9CA3AF),
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  widget.target,
+                  style: AppTypography.titleSmall.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xxl),
+
+                // OTP Inputs
+                AppOtpInput(
+                  length: 4,
+                  onChanged: (code) => _enteredCode = code,
+                  onCompleted: (code) {
+                    _enteredCode = code;
+                    _handleVerify();
+                  },
+                ),
+                const SizedBox(height: AppSpacing.xxl),
+
+                // Verify Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: _isSubmitting ? null : _handleVerify,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      elevation: 4,
+                      shadowColor: AppColors.primary.withValues(alpha: 0.3),
+                      shape: const StadiumBorder(),
                     ),
+                    child: _isSubmitting
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                        : Text(
+                            'Verify',
+                            style: AppTypography.titleSmall.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                          ),
                   ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    'We Have Sent Code To Your ${widget.isEmail ? "Email" : "Phone Number"}',
-                    textAlign: TextAlign.center,
-                    style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    widget.target,
-                    textAlign: TextAlign.center,
-                    style: AppTypography.titleSmall.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xxl),
-                  AppOtpInput(
-                    length: 4,
-                    onChanged: (code) => _enteredCode = code,
-                    onCompleted: (code) {
-                      _enteredCode = code;
-                      _handleVerify();
-                    },
-                  ),
-                  const SizedBox(height: AppSpacing.xxl),
-                  AppButton.primary(
-                    text: 'Verify',
-                    isLoading: _isSubmitting,
-                    onPressed: _handleVerify,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  AppButton.secondary(
-                    text: 'Send Again',
+                ),
+                const SizedBox(height: AppSpacing.md),
+
+                // Send Again Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
                     onPressed: () {
                       AppSnackBar.showInfo(
                         context,
                         message: 'Code resent to ${widget.target}',
                       );
                     },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFE5E7EB),
+                      foregroundColor: const Color(0xFF9CA3AF),
+                      elevation: 0,
+                      shape: const StadiumBorder(),
+                    ),
+                    child: Text(
+                      'Send Again',
+                      style: AppTypography.titleSmall.copyWith(
+                        color: const Color(0xFF9CA3AF),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

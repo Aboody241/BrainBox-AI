@@ -84,32 +84,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Top Back Button Card
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x0A000000),
-                              blurRadius: 12,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: IconButton(
-                          padding: EdgeInsets.zero,
-                          icon: const Icon(
-                            Icons.chevron_left,
-                            size: 26,
-                            color: AppColors.textPrimary,
-                          ),
-                          onPressed: () => context.pop(),
-                        ),
-                      ),
-                      const SizedBox(height: 100),
+                      const SizedBox(height: AppSpacing.xs),
+                      // Top Reusable Back Button
+                      const AppBackButton(),
+                      const SizedBox(height: AppSpacing.xl),
 
                       // Heading Title
                       Text(
@@ -359,7 +337,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20,)
+                      const SizedBox(height: 20),
                     ],
                   ),
                 ),
