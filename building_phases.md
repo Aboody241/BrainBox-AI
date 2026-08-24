@@ -73,7 +73,7 @@ main.dart
   - [x] Cards & Containers
   - [x] Loading indicators & Shimmers
   - [x] Error banners & SnackBars
-  - Empty state placeholders
+  - [x] Empty state placeholders
   - Message bubble components
   - Responsive layout rules
 

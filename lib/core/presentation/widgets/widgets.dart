@@ -3,6 +3,7 @@ export 'app_badge.dart';
 export 'app_banner.dart';
 export 'app_button.dart';
 export 'app_card.dart';
+export 'app_empty_state.dart';
 export 'app_feature_tile.dart';
 export 'app_loading_indicator.dart';
 export 'app_otp_input.dart';
