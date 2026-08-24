@@ -48,7 +48,7 @@ void main() {
       );
 
       await tester.enterText(find.byType(TextField), 'Hello AI');
-      await tester.tap(find.byIcon(Icons.send_rounded));
+      await tester.testTextInput.receiveAction(TextInputAction.send);
       await tester.pump();
 
       expect(find.text('Hello AI'), findsOneWidget);

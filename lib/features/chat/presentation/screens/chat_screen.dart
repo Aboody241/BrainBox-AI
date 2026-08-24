@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/presentation/responsive/responsive.dart';
@@ -207,7 +208,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     vertical: AppSpacing.lg,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF4F5F7),
+                    color: const Color.fromARGB(255, 233, 234, 238),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
@@ -258,7 +259,8 @@ class _ChatScreenState extends State<ChatScreen> {
         return AppChatBubble(
           message: item.text,
           isUser: item.isUser,
-          timestamp: '${item.timestamp.hour.toString().padLeft(2, '0')}:${item.timestamp.minute.toString().padLeft(2, '0')}',
+          timestamp:
+              '${item.timestamp.hour.toString().padLeft(2, '0')}:${item.timestamp.minute.toString().padLeft(2, '0')}',
         );
       },
     );
@@ -302,7 +304,14 @@ class _ChatScreenState extends State<ChatScreen> {
                   color: const Color(0xFFC2C3CB),
                   fontSize: 14,
                 ),
+                filled: false,
+                fillColor: Colors.transparent,
                 border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.xs,
@@ -311,12 +320,14 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
           ),
-          IconButton(
-            onPressed: () => _sendMessage(),
-            icon: const Icon(
-              Icons.send_rounded,
-              color: Color(0xFFC2C3CB),
-              size: 20,
+          const SizedBox(width: AppSpacing.sm),
+          GestureDetector(
+            onTap: () => _sendMessage(),
+            behavior: HitTestBehavior.opaque,
+            child: SvgPicture.asset(
+              'assets/icons/send_icon.svg',
+              width: 24,
+              height: 24,
             ),
           ),
         ],
