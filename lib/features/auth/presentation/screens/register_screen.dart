@@ -215,11 +215,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                             GestureDetector(
                               onTap: () {
-                                if (Navigator.canPop(context)) {
-                                  context.pop();
-                                } else {
-                                  context.go(AppRoutes.login);
-                                }
+                                context.push(AppRoutes.loginForm);
                               },
                               child: Text(
                                 'Sign In',

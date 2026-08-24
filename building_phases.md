@@ -28,7 +28,7 @@ docs/
 
 ---
 
-## Phase 1 — Project Foundation
+## Phase 1 — Project Foundation (100% COMPLETE)
 
 **الهدف:** بناء الـ skeleton الأساسي للمشروع.
 
@@ -44,16 +44,6 @@ docs/
 - [x] Environment configuration
 - [x] App entry point
 
-### Architecture:
-```text
-main.dart
-   ↓
-  App
-   ├── Router
-   ├── Theme
-   └── DI
-```
-
 ### Definition of Done:
 - [x] `flutter analyze` → **PASS**
 - [x] `flutter test` → **PASS**
@@ -62,76 +52,55 @@ main.dart
 
 ---
 
-## Phase 2 — Design System & UI Foundation
+## Phase 2 — Design System & UI Foundation (100% COMPLETE)
 
-**الهدف:** قبل ما نعمل features، نبني لغة UI موحدة ومتناسقة.
+**الهدف:** بناء لغة UI موحدة ومتناسقة.
 
 ### المهام:
 - **Design Tokens:** Colors, Typography, Spacing, Radius, Shadows
 - **Core Components:**
-  - [x] Buttons & Text fields
-  - [x] Cards & Containers
-  - [x] Loading indicators & Shimmers
-  - [x] Error banners & SnackBars
-  - [x] Empty state placeholders
-  - [x] Message bubble components
-  - [x] Responsive layout rules
-
-### الناتج:
-```text
-core/
-└── presentation/
-    ├── theme/
-    ├── widgets/
-    └── components/
-```
+  - [x] Buttons & Text fields (`AppButton`, `AppTextField`, `AppOtpInput`)
+  - [x] Cards & Containers (`AppCard`, `AppBackButton`)
+  - [x] Loading indicators & Shimmers (`AppLoadingIndicator`, `AppShimmer`)
+  - [x] Error banners & SnackBars (`AppBanner`, `AppSnackBar`)
+  - [x] Empty state placeholders (`AppEmptyState` with SVG assets support)
+  - [x] Message bubble components (`AppChatBubble`)
+  - [x] Responsive layout rules (`AppResponsiveLayout`, `AppBreakpoints`, `AppCenteredContent`)
 
 ---
 
-## Phase 3 — Authentication
+## Phase 3 — Authentication & Auth UI (100% COMPLETE)
 
-**الهدف:** بناء نظام الـ authentication بالكامل.
+**الهدف:** بناء نظام الـ authentication والواجهات بالكامل.
 
 ### Architecture Breakdown:
 
 #### 1. Domain Layer
-- **Entities:** `User`
-- **Contracts:** `AuthRepository`
-- **Use Cases:** `Login`, `Logout`, `GetCurrentUser`
+- [x] **Entities:** `User` (`id`, `username`, `email`, `password`, `image`, `createdAt`, `isLoggedIn`)
+- [x] **Contracts:** `AuthRepository`
+- [x] **Use Cases:** `LoginUseCase`, `RegisterUseCase`, `GetCurrentUserUseCase`, `LogoutUseCase`
 
 #### 2. Data Layer
-- `AuthRemoteDataSource`
-- `AuthRepositoryImpl`
+- [x] `UserModel` with JSON serialization
+- [x] `InMemoryAuthLocalDataSource`
+- [x] `MockAuthRemoteDataSource`
+- [x] `AuthRepositoryImpl`
 
 #### 3. Presentation Layer
-- **Screens:** `SplashScreen`, `LoginScreen`
-- **State Management:** `AuthViewModel`, `AuthState`
-
-### Flow:
-```text
-       App
-        ↓
-     Splash
-        ↓
-   Check Session
-        ↓
- ┌───────────────┐
- │ Authenticated │ ──► Home
- └───────┬───────┘
-         │
-         ▼ (Not Authenticated)
-       Login
-```
-
-### Tests:
-- [x] Auth repository unit tests
-- [x] Login use case unit tests
-- [x] AuthViewModel state tests
-- [x] Login widget tests
+- [x] **Screens:** 
+  - `SplashScreen` (2-step logo animation `Logo.svg` ➔ `textSlogan.svg`)
+  - `LoginScreen` (Welcome & Social Auth Landing)
+  - `LoginFormScreen` (Dedicated Sign In Page matching design mockup)
+  - `RegisterScreen` (Dedicated Sign Up Page matching design mockup)
+  - `ForgetPasswordScreen` (Contact method selection matching design mockup)
+  - `EnterPhoneScreen` (Phone number entry matching design mockup)
+  - `VerifyOtpScreen` (OTP Verification)
+- [x] **State Management:** `AuthViewModel`, `AuthState`
+- [x] **Reusable UI Component:** `AppBackButton` extracted & applied across all auth sub-screens
 
 ---
 
-## Phase 4 — Local Database
+## Phase 4 — Local Database (NEXT UP)
 
 **الهدف:** بناء persistence layer قبل الشات.
 
@@ -149,345 +118,3 @@ core/
 - Database error handling
 - Schema migration strategy
 - Database unit & migration tests
-
-### Structure:
-```text
-core/database/
-├── app_database.dart
-├── tables/
-├── daos/
-└── migrations/
-```
-
----
-
-## Phase 5 — Conversations
-
-**الهدف:** بناء نظام الـ Recent Chats وإدارة المحادثات.
-
-### Features:
-- Create new conversation
-- Load conversation history
-- Rename conversation
-- Delete conversation
-- Search conversations
-- Sort by updated date
-- Local-first persistence
-
-### Architecture Flow:
-```text
-HomeScreen ──► ConversationViewModel ──► GetConversations UseCase ──► ConversationRepository ──► LocalDataSource ──► Drift
-```
-
-### UI Components:
-```text
-HomeScreen
- ├── Recent Chats List
- ├── Search Bar
- └── New Chat Action Button
-```
-
----
-
-## Phase 6 — Chat Domain
-
-**الهدف:** بناء عقل الشات قبل ربط Gemini (فصل كامل للـ Domain).
-
-> [!IMPORTANT]
-> **ممنوع ربط Gemini في هذه المرحلة.** نحن نبني الـ domain والـ contracts المستقلة أولاً.
-
-### 1. Entities:
-- `Message`
-- `Conversation`
-
-### 2. Repository Contract:
-- `ChatRepository`
-
-### 3. Use Cases:
-- `SendMessage`
-- `GetMessages`
-- `DeleteMessage`
-- `RegenerateMessage`
-- `ClearConversation`
-
-### 4. State Model:
-```text
-ChatState (Initial | Loading | Streaming | Success | Failure)
-```
-
----
-
-## Phase 7 — AI Provider
-
-**الهدف:** ربط Gemini بالـ architecture عبر Repository Pattern.
-
-### Flow:
-```text
-ChatRepository (Domain Contract)
-       ▲
-       │
-GeminiChatRepository (Implementation)
-       ↓
-GeminiRemoteDataSource
-       ↓
-Gemini API
-```
-
-### المهام:
-- API client & secure config
-- Request / Response models & DTOs
-- DTO ↔ Entity mappers
-- API error mapping to Domain failures
-- Repository implementation
-
-> [!TIP]
-> **أهم اختبار:** يجب أن نتمكن من استبدال `GeminiChatRepository` بـ `OpenAIChatRepository` بدون تعديل سطر واحد في الـ UI أو الـ ViewModels.
-
----
-
-## Phase 8 — Streaming Chat
-
-**الهدف:** تنفيذ أهم feature في التطبيق (Streaming response).
-
-### Flow:
-```text
-User ──► ViewModel ──► SendMessage UseCase ──► Repository ──► Gemini ──► Stream<String> ──► ViewModel ──► State ──► UI
-```
-
-### المهام:
-- Streaming response consumption
-- Incremental text emission
-- Typing indicator
-- Cancel generation action
-- Stream completion handling
-- Mid-stream failure recovery
-- Retry mechanism
-- Persist finalized AI response to local database
-
----
-
-## Phase 9 — Chat UI
-
-**الهدف:** بناء واجهة الشات بعد اكتمال الـ Domain والـ Data والـ Streaming.
-
-### UI Components & Features:
-- `ChatScreen` & responsive layout
-- `MessageBubble` (User bubble vs AI bubble)
-- Markdown rendering & code block syntax highlighting
-- Copy, Regenerate, and Delete actions
-- `MessageInputField` & Send button
-- Streaming typing indicator
-- Auto-scroll to bottom on new chunks
-
-### Flow:
-```text
-ChatScreen ──► ChatViewModel ──► ChatState ──► UI Widgets
-```
-
----
-
-## Phase 10 — Offline & Reliability
-
-**الهدف:** تحويل التطبيق من مجرد Demo إلى تطبيق Production-Ready موثوق.
-
-### المهام:
-- Network connectivity detection
-- Offline state handling & banners
-- Request retry policies with exponential backoff
-- Timeout & rate-limiting handling
-- Failed message status & retry buttons
-- Request cancellation on screen exit
-- Local-first instant message loading
-
----
-
-## Phase 11 — Advanced Chat Features
-
-**الهدف:** ميزات متقدمة بعد الـ MVP.
-
-### Features:
-- Regenerate response
-- Edit sent message
-- Continue generation
-- Delete single message
-- Copy formatted response
-- Share conversation
-- Search across message contents
-- AI Model selection (Gemini Pro, Flash, etc.)
-- Custom system prompt configuration
-- In-place conversation rename
-
----
-
-## Phase 12 — Settings
-
-### Settings Structure:
-```text
-Settings
-├── Theme (Dark / Light / System)
-├── AI Model Preferences
-├── Account Management
-├── Storage / Data (Clear History)
-└── About & Licenses
-```
-
----
-
-## Phase 13 — Comprehensive Testing
-
-**الهدف:** تغطية اختبار شاملة لجميع طبقات التطبيق.
-
-### 1. Unit Tests:
-- Entities & Value Objects
-- Use Cases (mocking repositories)
-- Repositories & DataSources (mocking HTTP/DB clients)
-- ViewModels & State emission sequences
-- Mappers & Error converters
-
-### 2. Widget Tests:
-- `LoginScreen`
-- `HomeScreen` & `ConversationList`
-- `ChatScreen` & `MessageBubble`
-- `SettingsScreen`
-
-### 3. Integration Tests:
-```text
-Login ──► Create Chat ──► Send Message ──► Stream Response ──► Close App ──► Reopen App ──► Restore Chat
-```
-
----
-
-## Phase 14 — Performance Optimization
-
-**الهدف:** قياس وتحسين الأداء بواسطة Flutter DevTools بدل التخمين.
-
-### مجالات الفحص:
-- Widget rebuild analysis (استخدام `const` و `Selector`)
-- Memory leaks & stream subscription management
-- Startup time optimization
-- Large conversation list virtualization (`ListView.builder`)
-- Database indexing & query execution times
-- Streaming repaint frequency
-- Image & asset caching
-
----
-
-## Phase 15 — Security
-
-### مراجعة الأمان:
-- حماية API Keys (استخدام `--dart-define` أو Backend proxy)
-- تأمين Environment variables
-- تشفير Local storage / Session tokens
-- إزالة السجلات الحساسة (Logs) في Release mode
-- مراجعة إعدادات الـ Release Build
-
-> [!CAUTION]
-> لا تضع Gemini API Key مكشوفاً داخل الكود المصدري أو مستودع Git أبداً.
-
----
-
-## Phase 16 — Documentation
-
-**الهدف:** توثيق المشروع ليصبح Portfolio Project متكامل ومعياري.
-
-### Structure:
-```text
-docs/
-├── architecture/
-│   ├── overview.md
-│   └── adr/
-│       ├── ADR-001-feature-first.md
-│       ├── ADR-002-mvvm.md
-│       └── ADR-003-repository-pattern.md
-├── development/
-│   └── workflow.md
-├── diagrams/
-│   ├── architecture.md
-│   ├── data-flow.md
-│   └── authentication.md
-└── decisions/
-```
-
----
-
-## Phase 17 — Portfolio Polish
-
-**الهدف:** اللمسات النهائية للمشروع والمظهر العام.
-
-### المهام:
-- App Icon & Splash Screen
-- Final UI polish & micro-animations
-- Empty & Error states styling
-- High-resolution screenshots
-- Demo video / GIF walkthrough
-- GitHub repo cleanup & badges
-- Professional README & architecture highlights
-- LinkedIn showcase post
-
----
-
-## الشكل النهائي للمشروع
-
-```text
-                    BrainBox AI
-                         │
-          ┌──────────────┴──────────────┐
-          │                             │
-     Presentation                      Core
-          │                             │
-        MVVM                      Infrastructure
-          │                             │
-       UseCases                     Database
-          │                        Networking
-        Domain                       Errors
-          │
-    Repository Contract
-          │
-    ┌─────┴──────┐
-    │            │
-  Remote        Local
-    │            │
-  Gemini       Drift
-```
-
----
-
-## ترتيب التنفيذ الفعلي
-
-```text
-Phase 0   Architecture & Planning
-   ↓
-Phase 1   Project Foundation
-   ↓
-Phase 2   Design System & UI Foundation
-   ↓
-Phase 3   Authentication
-   ↓
-Phase 4   Local Database (Drift)
-   ↓
-Phase 5   Conversations (Recent Chats)
-   ↓
-Phase 6   Chat Domain (Contracts & Use Cases)
-   ↓
-Phase 7   AI Provider (Gemini Integration)
-   ↓
-Phase 8   Streaming Chat
-   ↓
-Phase 9   Chat UI
-   ↓
-Phase 10  Offline & Reliability
-   ↓
-Phase 11  Advanced Chat Features
-   ↓
-Phase 12  Settings
-   ↓
-Phase 13  Comprehensive Testing
-   ↓
-Phase 14  Performance Profiling
-   ↓
-Phase 15  Security Audit
-   ↓
-Phase 16  Architecture Documentation
-   ↓
-Phase 17  Portfolio Polish
-```
