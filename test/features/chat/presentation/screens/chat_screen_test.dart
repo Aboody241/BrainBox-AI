@@ -41,7 +41,8 @@ void main() {
       expect(find.byType(SvgPicture), findsWidgets);
     });
 
-    testWidgets('typing text switches send icon and sending displays chat bubble',
+    testWidgets(
+        'sending message displays user bubble with edit icon, AI bubble with avatar, and stop generating button',
         (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -49,28 +50,26 @@ void main() {
         ),
       );
 
-      // Initially empty -> send_icon.svg
-      expect(find.byType(SvgPicture), findsWidgets);
-
-      // Type text -> Send.svg
-      await tester.enterText(find.byType(TextField), 'Hello AI');
+      await tester.enterText(find.byType(TextField), 'Explain quantum computing in simple terms');
       await tester.pump();
 
-      // Tap send
       await tester.testTextInput.receiveAction(TextInputAction.send);
       await tester.pump();
 
-      expect(find.text('Hello AI'), findsOneWidget);
+      expect(find.text('Explain quantum computing in simple terms'), findsOneWidget);
+      expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
 
-      // Settle AI response
-      await tester.pump(const Duration(milliseconds: 800));
+      // Advance clock slightly for AI streaming initiation
+      await tester.pump(const Duration(milliseconds: 350));
+      expect(find.text('Stop generating...'), findsOneWidget);
+      expect(find.byIcon(Icons.content_copy_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.share_outlined), findsOneWidget);
+
+      // Tap stop generating
+      await tester.tap(find.text('Stop generating...'));
       await tester.pump();
 
-      expect(
-        find.text(
-            'I am BrainBox AI, your smart conversational assistant. How can I help you achieve your goals today?'),
-        findsOneWidget,
-      );
+      expect(find.text('Stop generating...'), findsNothing);
     });
   });
 }

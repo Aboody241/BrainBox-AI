@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,14 +12,18 @@ import '../../../../core/presentation/theme/app_typography.dart';
 import '../../../../core/presentation/widgets/widgets.dart';
 
 class ChatMessageItem {
-  final String text;
+  final String id;
+  String text;
   final bool isUser;
   final DateTime timestamp;
+  bool isStreaming;
 
-  const ChatMessageItem({
+  ChatMessageItem({
+    required this.id,
     required this.text,
     required this.isUser,
     required this.timestamp,
+    this.isStreaming = false,
   });
 }
 
@@ -37,6 +44,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessageItem> _messages = [];
   bool _isGenerating = false;
+  Timer? _streamTimer;
 
   static const List<String> _capabilityPrompts = [
     'Remembers what user said earlier in the conversation',
@@ -46,8 +54,12 @@ class _ChatScreenState extends State<ChatScreen> {
     'May occasionally produce harmful instructions or biased content',
   ];
 
+  static const String _defaultAiResponse =
+      'Quantum computing is a new type of computing that the principles of quantum mechanics to process information. While traditional computers use bits to represent and process data, which can be eithe quantum computers use quantum bits, or which can represent 0, 1, or both simultaneously';
+
   @override
   void dispose() {
+    _streamTimer?.cancel();
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -58,48 +70,91 @@ class _ChatScreenState extends State<ChatScreen> {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 200),
           curve: Curves.easeOut,
         );
       }
     });
   }
 
+  void _stopGenerating() {
+    _streamTimer?.cancel();
+    _streamTimer = null;
+    if (mounted) {
+      setState(() {
+        _isGenerating = false;
+        if (_messages.isNotEmpty && !_messages.last.isUser) {
+          _messages.last.isStreaming = false;
+        }
+      });
+    }
+  }
+
   Future<void> _sendMessage([String? customText]) async {
     final text = (customText ?? _messageController.text).trim();
     if (text.isEmpty || _isGenerating) return;
 
+    final userMsg = ChatMessageItem(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      text: text,
+      isUser: true,
+      timestamp: DateTime.now(),
+    );
+
     setState(() {
-      _messages.add(
-        ChatMessageItem(
-          text: text,
-          isUser: true,
-          timestamp: DateTime.now(),
-        ),
-      );
+      _messages.add(userMsg);
       _isGenerating = true;
     });
 
     _messageController.clear();
     _scrollToBottom();
 
-    // Simulate AI response stream
-    await Future<void>.delayed(const Duration(milliseconds: 750));
+    // Prepare AI streaming response
+    await Future<void>.delayed(const Duration(milliseconds: 300));
     if (!mounted) return;
 
+    final aiMsg = ChatMessageItem(
+      id: (DateTime.now().millisecondsSinceEpoch + 1).toString(),
+      text: '',
+      isUser: false,
+      timestamp: DateTime.now(),
+      isStreaming: true,
+    );
+
     setState(() {
-      _messages.add(
-        ChatMessageItem(
-          text:
-              'I am BrainBox AI, your smart conversational assistant. How can I help you achieve your goals today?',
-          isUser: false,
-          timestamp: DateTime.now(),
-        ),
-      );
-      _isGenerating = false;
+      _messages.add(aiMsg);
     });
 
-    _scrollToBottom();
+    final fullResponse = text.toLowerCase().contains('quantum')
+        ? _defaultAiResponse
+        : 'I am BrainBox AI, your smart conversational assistant. How can I help you achieve your goals today? Feel free to ask me anything!';
+
+    final words = fullResponse.split(' ');
+    var currentIndex = 0;
+
+    _streamTimer?.cancel();
+    _streamTimer = Timer.periodic(const Duration(milliseconds: 45), (timer) {
+      if (currentIndex < words.length) {
+        if (!mounted) {
+          timer.cancel();
+          return;
+        }
+        setState(() {
+          aiMsg.text = words.sublist(0, currentIndex + 1).join(' ');
+        });
+        currentIndex++;
+        _scrollToBottom();
+      } else {
+        timer.cancel();
+        _streamTimer = null;
+        if (mounted) {
+          setState(() {
+            aiMsg.isStreaming = false;
+            _isGenerating = false;
+          });
+        }
+      }
+    });
   }
 
   @override
@@ -115,15 +170,22 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           child: Column(
             children: [
-              // Top Bar
+              // Top Navigation Bar
               _buildTopBar(),
 
-              // Content Area (Welcome cards if empty, or Messages list)
+              // Messages List or Welcome Cards
               Expanded(
                 child: _messages.isEmpty
                     ? _buildEmptyWelcomeState()
                     : _buildMessagesList(),
               ),
+
+              // Stop Generating button (above input field when generating)
+              if (_isGenerating) ...[
+                const SizedBox(height: AppSpacing.xs),
+                _buildStopGeneratingButton(),
+                const SizedBox(height: AppSpacing.xs),
+              ],
 
               // Bottom Input Box
               _buildMessageInputField(),
@@ -233,36 +295,215 @@ class _ChatScreenState extends State<ChatScreen> {
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-      itemCount: _messages.length + (_isGenerating ? 1 : 0),
+      itemCount: _messages.length,
       itemBuilder: (context, index) {
-        if (index == _messages.length && _isGenerating) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.sm,
-            ),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+        final item = _messages[index];
+        if (item.isUser) {
+          return _buildUserBubble(item);
+        } else {
+          return _buildAiBubble(item);
+        }
+      },
+    );
+  }
+
+  Widget _buildUserBubble(ChatMessageItem item) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: 14,
+              ),
+              decoration: BoxDecoration(
+                color: const Color(0xFFECEEF1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                item.text,
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.textPrimary,
+                  fontSize: 14.5,
+                  height: 1.4,
                 ),
-                SizedBox(width: AppSpacing.sm),
-                Text('BrainBox is thinking...'),
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          IconButton(
+            icon: const Icon(
+              Icons.edit_outlined,
+              size: 20,
+              color: Color(0xFF9CA3AF),
+            ),
+            tooltip: 'Edit message',
+            onPressed: () {
+              _messageController.text = item.text;
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAiBubble(ChatMessageItem item) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.lg,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7F8FA),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header Row with Avatar & Actions
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // BrainBox Avatar
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Center(
+                  child: SvgPicture.asset(
+                    'assets/logos/Logo.svg',
+                    width: 20,
+                    height: 20,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.white,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                ),
+              ),
+              // Action Buttons (Copy & Share)
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.content_copy_outlined,
+                      size: 20,
+                      color: Color(0xFF9CA3AF),
+                    ),
+                    tooltip: 'Copy',
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: item.text));
+                      AppSnackBar.showSuccess(
+                        context,
+                        message: 'Message copied to clipboard',
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.share_outlined,
+                      size: 20,
+                      color: Color(0xFF9CA3AF),
+                    ),
+                    tooltip: 'Share',
+                    onPressed: () {
+                      AppSnackBar.showInfo(
+                        context,
+                        message: 'Sharing message...',
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+
+          // Message Body with live cursor indicator
+          RichText(
+            text: TextSpan(
+              style: AppTypography.bodyMedium.copyWith(
+                color: AppColors.textPrimary,
+                fontSize: 14.5,
+                height: 1.55,
+              ),
+              children: [
+                TextSpan(text: item.text),
+                if (item.isStreaming)
+                  const TextSpan(
+                    text: ' █',
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
               ],
             ),
-          );
-        }
+          ),
+        ],
+      ),
+    );
+  }
 
-        final item = _messages[index];
-        return AppChatBubble(
-          message: item.text,
-          isUser: item.isUser,
-          timestamp:
-              '${item.timestamp.hour.toString().padLeft(2, '0')}:${item.timestamp.minute.toString().padLeft(2, '0')}',
-        );
-      },
+  Widget _buildStopGeneratingButton() {
+    return Center(
+      child: InkWell(
+        onTap: _stopGenerating,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 9,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: const Color(0xFFE5E7EB),
+              width: 1,
+            ),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x06000000),
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Text(
+                'Stop generating...',
+                style: AppTypography.labelMedium.copyWith(
+                  color: AppColors.textPrimary,
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -332,8 +573,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   isNotEmpty
                       ? 'assets/icons/Send.svg'
                       : 'assets/icons/send_icon.svg',
-                  width: isNotEmpty? 40 : 24,
-                  height: isNotEmpty? 40 : 24,
+                  width: isNotEmpty ? 40 : 24,
+                  height: isNotEmpty ? 40 : 24,
                 ),
               );
             },
@@ -361,6 +602,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   style: TextStyle(color: Colors.red),
                 ),
                 onTap: () {
+                  _stopGenerating();
                   setState(() => _messages.clear());
                   context.pop();
                 },
