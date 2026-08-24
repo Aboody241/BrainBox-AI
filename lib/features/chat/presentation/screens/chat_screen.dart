@@ -321,14 +321,22 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
-          GestureDetector(
-            onTap: () => _sendMessage(),
-            behavior: HitTestBehavior.opaque,
-            child: SvgPicture.asset(
-              'assets/icons/send_icon.svg',
-              width: 24,
-              height: 24,
-            ),
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _messageController,
+            builder: (context, value, _) {
+              final isNotEmpty = value.text.trim().isNotEmpty;
+              return GestureDetector(
+                onTap: () => _sendMessage(),
+                behavior: HitTestBehavior.opaque,
+                child: SvgPicture.asset(
+                  isNotEmpty
+                      ? 'assets/icons/Send.svg'
+                      : 'assets/icons/send_icon.svg',
+                  width: 24,
+                  height: 24,
+                ),
+              );
+            },
           ),
         ],
       ),

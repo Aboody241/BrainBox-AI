@@ -1,5 +1,6 @@
 import 'package:brain_box_ai/features/chat/presentation/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -37,9 +38,10 @@ void main() {
       );
       expect(find.text('Send a message.'), findsOneWidget);
       expect(find.byIcon(Icons.more_horiz_rounded), findsOneWidget);
+      expect(find.byType(SvgPicture), findsWidgets);
     });
 
-    testWidgets('typing and sending a message displays chat bubble',
+    testWidgets('typing text switches send icon and sending displays chat bubble',
         (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -47,7 +49,14 @@ void main() {
         ),
       );
 
+      // Initially empty -> send_icon.svg
+      expect(find.byType(SvgPicture), findsWidgets);
+
+      // Type text -> Send.svg
       await tester.enterText(find.byType(TextField), 'Hello AI');
+      await tester.pump();
+
+      // Tap send
       await tester.testTextInput.receiveAction(TextInputAction.send);
       await tester.pump();
 
