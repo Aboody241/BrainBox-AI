@@ -126,32 +126,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     final item = _items[index];
                     return Column(
                       children: [
-                        // Full width Hero Image with rounded corners and shadow
+                        // Full edge-to-edge Hero Image sticking to phone frame
                         Expanded(
                           flex: 6,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.md,
-                            ),
-                            child: Container(
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(32),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Color(0x30000000),
-                                    blurRadius: 28,
-                                    offset: Offset(0, 12),
-                                  ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(32),
-                                child: Image.asset(
-                                  item.imagePath,
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
+                          child: Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(32),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x30000000),
+                                  blurRadius: 28,
+                                  offset: Offset(0, 12),
                                 ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(32),
+                              child: Image.asset(
+                                item.imagePath,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
                               ),
                             ),
                           ),
