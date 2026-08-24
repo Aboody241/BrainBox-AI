@@ -391,31 +391,38 @@ class _ChatScreenState extends State<ChatScreen> {
     if (_attachedImageBytes == null) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.xs, left: 4),
+      padding: const EdgeInsets.only(
+        top: AppSpacing.xs,
+        bottom: AppSpacing.sm,
+        left: AppSpacing.xs,
+        right: AppSpacing.xs,
+      ),
       child: Align(
         alignment: Alignment.centerLeft,
         child: Stack(
           clipBehavior: Clip.none,
           children: [
             Container(
-              width: 64,
-              height: 64,
+              width: 72,
+              height: 72,
+              padding: const EdgeInsets.all(3),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
                 border: Border.all(
                   color: const Color(0xFFE5E7EB),
-                  width: 1.2,
+                  width: 1.5,
                 ),
                 boxShadow: const [
                   BoxShadow(
-                    color: Color(0x0A000000),
-                    blurRadius: 8,
-                    offset: Offset(0, 2),
+                    color: Color(0x0E000000),
+                    blurRadius: 10,
+                    offset: Offset(0, 3),
                   ),
                 ],
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(13),
+                borderRadius: BorderRadius.circular(14),
                 child: Image.memory(
                   _attachedImageBytes!,
                   fit: BoxFit.cover,
@@ -433,14 +440,25 @@ class _ChatScreenState extends State<ChatScreen> {
                   });
                 },
                 child: Container(
-                  padding: const EdgeInsets.all(3),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF141718),
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF141718),
                     shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 1.5,
+                    ),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x22000000),
+                        blurRadius: 4,
+                        offset: Offset(0, 1),
+                      ),
+                    ],
                   ),
                   child: const Icon(
                     Icons.close_rounded,
-                    size: 14,
+                    size: 13,
                     color: Colors.white,
                   ),
                 ),
@@ -619,15 +637,15 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   if (item.imageBytes != null) ...[
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                       child: Image.memory(
                         item.imageBytes!,
-                        width: 200,
+                        width: 220,
                         height: 200,
                         fit: BoxFit.cover,
                       ),
                     ),
-                    if (item.text.isNotEmpty) const SizedBox(height: 8),
+                    if (item.text.isNotEmpty) const SizedBox(height: 10),
                   ],
                   if (item.text.isNotEmpty)
                     Text(
