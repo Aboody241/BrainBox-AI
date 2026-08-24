@@ -66,18 +66,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: AppColors.primary),
-          onPressed: () => context.pop(),
-        ),
-      ),
       body: SafeArea(
         child: AppCenteredContent(
           maxWidth: AppBreakpoints.maxFormWidth,
-          padding: const EdgeInsets.all(AppSpacing.xl),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.xl,
+            vertical: AppSpacing.md,
+          ),
           child: ListenableBuilder(
             listenable: authVm,
             builder: (context, _) {
@@ -87,28 +82,61 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 key: _formKey,
                 child: SingleChildScrollView(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Create Account',
-                        textAlign: TextAlign.center,
-                        style: AppTypography.displayMedium.copyWith(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
                       const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        'Join BrainBox AI to unleash productivity',
-                        textAlign: TextAlign.center,
-                        style: AppTypography.bodyMedium.copyWith(
-                          color: AppColors.textSecondary,
+                      // Top Back Button Card
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x0A000000),
+                              blurRadius: 12,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(
+                            Icons.chevron_left,
+                            size: 26,
+                            color: AppColors.textPrimary,
+                          ),
+                          onPressed: () => context.pop(),
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.xxl),
+                      const SizedBox(height: AppSpacing.xl),
+
+                      // Heading Title
+                      Text(
+                        'Create your',
+                        style: AppTypography.displayMedium.copyWith(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                          height: 1.2,
+                        ),
+                      ),
+                      Text(
+                        'Account',
+                        style: AppTypography.displayMedium.copyWith(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                          height: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+
+                      // Input Fields
                       AppTextField(
                         controller: _usernameController,
-                        hintText: 'Full Name / Username',
+                        hintText: 'Full Name',
                         prefixIcon: const Icon(
                           Icons.person_outline,
                           color: AppColors.textfieldIcons,
@@ -120,10 +148,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: AppSpacing.lg),
+                      const SizedBox(height: AppSpacing.md),
                       AppTextField(
                         controller: _emailController,
-                        hintText: 'Email Address',
+                        hintText: 'Enter Your Email',
                         keyboardType: TextInputType.emailAddress,
                         prefixIcon: const Icon(
                           Icons.mail_outline,
@@ -139,7 +167,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: AppSpacing.lg),
+                      const SizedBox(height: AppSpacing.md),
                       AppTextField(
                         controller: _passwordController,
                         hintText: 'Password',
@@ -159,10 +187,178 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         },
                       ),
                       const SizedBox(height: AppSpacing.xl),
-                      AppButton.primary(
-                        text: 'Sign Up',
-                        isLoading: isLoading,
-                        onPressed: _handleRegister,
+
+                      // Main Register Button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: isLoading ? null : _handleRegister,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            elevation: 4,
+                            shadowColor: AppColors.primary.withValues(alpha: 0.3),
+                            shape: const StadiumBorder(),
+                          ),
+                          child: isLoading
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                              : Text(
+                                  'Register',
+                                  style: AppTypography.titleSmall.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+
+                      // Already Have An Account? Sign In
+                      Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Already Have An Account? ',
+                              style: AppTypography.bodySmall.copyWith(
+                                color: const Color(0xFF9CA3AF),
+                                fontSize: 14,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                if (Navigator.canPop(context)) {
+                                  context.pop();
+                                } else {
+                                  context.go(AppRoutes.login);
+                                }
+                              },
+                              child: Text(
+                                'Sign In',
+                                style: AppTypography.titleSmall.copyWith(
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xxl),
+
+                      // Social Divider Text
+                      Center(
+                        child: Text(
+                          'Continue With Accounts',
+                          textAlign: TextAlign.center,
+                          style: AppTypography.bodySmall.copyWith(
+                            color: const Color(0xFF9CA3AF),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+
+                      // Social Buttons Row
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SizedBox(
+                              height: 50,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  _usernameController.text = 'New User';
+                                  _emailController.text = 'user@example.com';
+                                  _passwordController.text = 'password123';
+                                  _handleRegister();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFF8D7D0),
+                                  foregroundColor: const Color(0xFFD9534F),
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Image.asset(
+                                      'assets/icons/icons8-google-96.png',
+                                      width: 20,
+                                      height: 20,
+                                    ),
+                                    const SizedBox(width: AppSpacing.xs),
+                                    Text(
+                                      'GOOGLE',
+                                      style: AppTypography.titleSmall.copyWith(
+                                        color: const Color(0xFFD9534F),
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13,
+                                        letterSpacing: 0.8,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(
+                            child: SizedBox(
+                              height: 50,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  _usernameController.text = 'New User';
+                                  _emailController.text = 'user@example.com';
+                                  _passwordController.text = 'password123';
+                                  _handleRegister();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFD6E2F5),
+                                  foregroundColor: const Color(0xFF3B5998),
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Image.asset(
+                                      'assets/icons/icons8-facebook-96.png',
+                                      width: 20,
+                                      height: 20,
+                                    ),
+                                    const SizedBox(width: AppSpacing.xs),
+                                    Text(
+                                      'FACEBOOK',
+                                      style: AppTypography.titleSmall.copyWith(
+                                        color: const Color(0xFF3B5998),
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13,
+                                        letterSpacing: 0.8,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
