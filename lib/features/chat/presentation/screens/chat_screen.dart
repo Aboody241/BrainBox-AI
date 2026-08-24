@@ -14,6 +14,7 @@ import '../../../../core/presentation/theme/app_typography.dart';
 import '../../../../core/presentation/widgets/widgets.dart';
 import '../../domain/entities/chat_message.dart';
 import '../../domain/usecases/stream_chat_response_usecase.dart';
+import '../widgets/chat_markdown_view.dart';
 
 class ChatMessageItem {
   final String id;
@@ -515,28 +516,10 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               const SizedBox(height: AppSpacing.md),
 
-              // Message Body with live cursor indicator
-              RichText(
-                text: TextSpan(
-                  style: AppTypography.bodyMedium.copyWith(
-                    color: const Color(0xFF2C2F38),
-                    fontSize: 15,
-                    height: 1.6,
-                    fontWeight: FontWeight.w400,
-                  ),
-                  children: [
-                    TextSpan(text: item.text),
-                    if (item.isStreaming)
-                      const TextSpan(
-                        text: ' █',
-                        style: TextStyle(
-                          color: Color(0xFF141718),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                  ],
-                ),
+              // Message Body with rich Markdown and copyable code blocks
+              ChatMarkdownView(
+                text: item.text,
+                isStreaming: item.isStreaming,
               ),
             ],
           ),
