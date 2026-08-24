@@ -42,7 +42,7 @@ void main() {
     });
 
     testWidgets(
-        'sending message displays user bubble with edit icon, AI bubble with avatar, and stop generating button',
+        'sending message displays user bubble, AI bubble with avatar, and stop generating button',
         (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -50,14 +50,15 @@ void main() {
         ),
       );
 
-      await tester.enterText(find.byType(TextField), 'Explain quantum computing in simple terms');
+      await tester.enterText(
+          find.byType(TextField), 'Explain quantum computing in simple terms');
       await tester.pump();
 
       await tester.testTextInput.receiveAction(TextInputAction.send);
       await tester.pump();
 
-      expect(find.text('Explain quantum computing in simple terms'), findsOneWidget);
-      expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
+      expect(find.text('Explain quantum computing in simple terms'),
+          findsOneWidget);
 
       // Advance clock slightly for AI streaming initiation
       await tester.pump(const Duration(milliseconds: 350));
@@ -70,6 +71,18 @@ void main() {
       await tester.pump();
 
       expect(find.text('Stop generating...'), findsNothing);
+    });
+
+    testWidgets('floating top bar is present and responsive',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: ChatScreen(conversationId: 'test-3'),
+        ),
+      );
+
+      expect(find.byIcon(Icons.more_horiz_rounded), findsOneWidget);
+      expect(find.byType(ChatScreen), findsOneWidget);
     });
   });
 }

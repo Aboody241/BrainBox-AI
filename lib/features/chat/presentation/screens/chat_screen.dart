@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
@@ -44,6 +45,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessageItem> _messages = [];
   bool _isGenerating = false;
+  bool _isTopBarVisible = true;
   Timer? _streamTimer;
 
   static const List<String> _capabilityPrompts = [
@@ -170,14 +172,34 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           child: Column(
             children: [
-              // Top Navigation Bar
-              _buildTopBar(),
+              // Floating Top Navigation Bar (Hides on scroll down)
+              AnimatedSize(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeInOut,
+                child: _isTopBarVisible
+                    ? _buildTopBar()
+                    : const SizedBox.shrink(),
+              ),
 
-              // Messages List or Welcome Cards
+              // Messages List or Welcome Cards with Scroll Direction Listener
               Expanded(
-                child: _messages.isEmpty
-                    ? _buildEmptyWelcomeState()
-                    : _buildMessagesList(),
+                child: NotificationListener<UserScrollNotification>(
+                  onNotification: (notification) {
+                    if (notification.direction == ScrollDirection.reverse) {
+                      if (_isTopBarVisible) {
+                        setState(() => _isTopBarVisible = false);
+                      }
+                    } else if (notification.direction == ScrollDirection.forward) {
+                      if (!_isTopBarVisible) {
+                        setState(() => _isTopBarVisible = true);
+                      }
+                    }
+                    return false;
+                  },
+                  child: _messages.isEmpty
+                      ? _buildEmptyWelcomeState()
+                      : _buildMessagesList(),
+                ),
               ),
 
               // Stop Generating button (above input field when generating)
@@ -346,16 +368,15 @@ class _ChatScreenState extends State<ChatScreen> {
           //     _messageController.text = item.text;
           //   },
           // ),
-          SizedBox(width: AppSpacing.sm,),
+          const SizedBox(width: AppSpacing.sm),
           Container(
             width: 10,
             height: 10,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.primary,
-              shape: BoxShape.circle
+              shape: BoxShape.circle,
             ),
-            
-          )
+          ),
         ],
       ),
     );
