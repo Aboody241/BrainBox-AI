@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 /// Pure domain entity representing a chat message in BrainBox AI.
 class ChatMessage {
   final String id;
@@ -5,6 +7,8 @@ class ChatMessage {
   final bool isUser;
   final DateTime timestamp;
   final bool isStreaming;
+  final Uint8List? imageBytes;
+  final String? imagePath;
 
   const ChatMessage({
     required this.id,
@@ -12,6 +16,8 @@ class ChatMessage {
     required this.isUser,
     required this.timestamp,
     this.isStreaming = false,
+    this.imageBytes,
+    this.imagePath,
   });
 
   ChatMessage copyWith({
@@ -20,6 +26,8 @@ class ChatMessage {
     bool? isUser,
     DateTime? timestamp,
     bool? isStreaming,
+    Uint8List? imageBytes,
+    String? imagePath,
   }) {
     return ChatMessage(
       id: id ?? this.id,
@@ -27,6 +35,8 @@ class ChatMessage {
       isUser: isUser ?? this.isUser,
       timestamp: timestamp ?? this.timestamp,
       isStreaming: isStreaming ?? this.isStreaming,
+      imageBytes: imageBytes ?? this.imageBytes,
+      imagePath: imagePath ?? this.imagePath,
     );
   }
 
@@ -37,9 +47,11 @@ class ChatMessage {
         other.id == id &&
         other.content == content &&
         other.isUser == isUser &&
-        other.isStreaming == isStreaming;
+        other.isStreaming == isStreaming &&
+        other.imagePath == imagePath;
   }
 
   @override
-  int get hashCode => Object.hash(id, content, isUser, isStreaming);
+  int get hashCode =>
+      Object.hash(id, content, isUser, isStreaming, imagePath);
 }

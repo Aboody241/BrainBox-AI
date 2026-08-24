@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/result/result.dart';
@@ -14,11 +16,15 @@ class ChatRepositoryImpl implements ChatRepository {
   Stream<String> streamMessage(
     String prompt, {
     List<ChatMessage> history = const [],
+    Uint8List? imageBytes,
+    String? mimeType,
     String? model,
   }) {
     return _remoteDataSource.streamGenerateContent(
       prompt,
       history: history,
+      imageBytes: imageBytes,
+      mimeType: mimeType,
       model: model,
     );
   }
@@ -27,12 +33,16 @@ class ChatRepositoryImpl implements ChatRepository {
   Future<Result<String>> sendMessage(
     String prompt, {
     List<ChatMessage> history = const [],
+    Uint8List? imageBytes,
+    String? mimeType,
     String? model,
   }) async {
     try {
       final text = await _remoteDataSource.generateContent(
         prompt,
         history: history,
+        imageBytes: imageBytes,
+        mimeType: mimeType,
         model: model,
       );
       return Result.success(text);

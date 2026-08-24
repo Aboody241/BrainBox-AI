@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -8,17 +9,21 @@ import '../../../../core/error/exceptions.dart';
 import '../../domain/entities/chat_message.dart';
 
 abstract interface class GeminiRemoteDataSource {
-  /// Streams text token chunks from Gemini API via SSE
+  /// Streams text token chunks from Gemini API via SSE with optional image
   Stream<String> streamGenerateContent(
     String prompt, {
     List<ChatMessage> history = const [],
+    Uint8List? imageBytes,
+    String? mimeType,
     String? model,
   });
 
-  /// Non-streaming complete content generation
+  /// Non-streaming complete content generation with optional image
   Future<String> generateContent(
     String prompt, {
     List<ChatMessage> history = const [],
+    Uint8List? imageBytes,
+    String? mimeType,
     String? model,
   });
 }
@@ -35,26 +40,52 @@ class GeminiRemoteDataSourceImpl implements GeminiRemoteDataSource {
 
   Map<String, dynamic> _buildRequestBody(
     String prompt,
-    List<ChatMessage> history,
-  ) {
+    List<ChatMessage> history, {
+    Uint8List? imageBytes,
+    String? mimeType,
+  }) {
     final contents = <Map<String, dynamic>>[];
 
     for (final msg in history) {
-      if (msg.content.trim().isNotEmpty) {
+      if (msg.content.trim().isNotEmpty || msg.imageBytes != null) {
+        final parts = <Map<String, dynamic>>[];
+        if (msg.imageBytes != null && msg.imageBytes!.isNotEmpty) {
+          parts.add({
+            'inlineData': {
+              'mimeType': 'image/jpeg',
+              'data': base64Encode(msg.imageBytes!),
+            }
+          });
+        }
+        if (msg.content.trim().isNotEmpty) {
+          parts.add({'text': msg.content});
+        }
         contents.add({
           'role': msg.isUser ? 'user' : 'model',
-          'parts': [
-            {'text': msg.content},
-          ],
+          'parts': parts,
         });
       }
     }
 
+    final currentParts = <Map<String, dynamic>>[];
+    if (imageBytes != null && imageBytes.isNotEmpty) {
+      currentParts.add({
+        'inlineData': {
+          'mimeType': mimeType ?? 'image/jpeg',
+          'data': base64Encode(imageBytes),
+        }
+      });
+    }
+
+    if (prompt.trim().isNotEmpty) {
+      currentParts.add({'text': prompt});
+    } else if (currentParts.isEmpty) {
+      currentParts.add({'text': 'Describe this image.'});
+    }
+
     contents.add({
       'role': 'user',
-      'parts': [
-        {'text': prompt},
-      ],
+      'parts': currentParts,
     });
 
     return {
@@ -77,11 +108,20 @@ class GeminiRemoteDataSourceImpl implements GeminiRemoteDataSource {
   Stream<String> streamGenerateContent(
     String prompt, {
     List<ChatMessage> history = const [],
+    Uint8List? imageBytes,
+    String? mimeType,
     String? model,
   }) async* {
     final targetModel = model ?? GeminiConfig.primaryModel;
     final url = Uri.parse(GeminiConfig.streamUrl(targetModel, _apiKey));
-    final body = jsonEncode(_buildRequestBody(prompt, history));
+    final body = jsonEncode(
+      _buildRequestBody(
+        prompt,
+        history,
+        imageBytes: imageBytes,
+        mimeType: mimeType,
+      ),
+    );
 
     http.StreamedResponse response;
     try {
@@ -106,6 +146,8 @@ class GeminiRemoteDataSourceImpl implements GeminiRemoteDataSource {
             yield* streamGenerateContent(
               prompt,
               history: history,
+              imageBytes: imageBytes,
+              mimeType: mimeType,
               model: fallback,
             );
             return;
@@ -147,11 +189,20 @@ class GeminiRemoteDataSourceImpl implements GeminiRemoteDataSource {
   Future<String> generateContent(
     String prompt, {
     List<ChatMessage> history = const [],
+    Uint8List? imageBytes,
+    String? mimeType,
     String? model,
   }) async {
     final targetModel = model ?? GeminiConfig.primaryModel;
     final url = Uri.parse(GeminiConfig.generateUrl(targetModel, _apiKey));
-    final body = jsonEncode(_buildRequestBody(prompt, history));
+    final body = jsonEncode(
+      _buildRequestBody(
+        prompt,
+        history,
+        imageBytes: imageBytes,
+        mimeType: mimeType,
+      ),
+    );
 
     http.Response response;
     try {
@@ -168,7 +219,13 @@ class GeminiRemoteDataSourceImpl implements GeminiRemoteDataSource {
       if (response.statusCode == 404 || response.body.contains('not found')) {
         for (final fallback in GeminiConfig.fallbackModels) {
           if (fallback != targetModel) {
-            return generateContent(prompt, history: history, model: fallback);
+            return generateContent(
+              prompt,
+              history: history,
+              imageBytes: imageBytes,
+              mimeType: mimeType,
+              model: fallback,
+            );
           }
         }
       }
@@ -181,7 +238,9 @@ class GeminiRemoteDataSourceImpl implements GeminiRemoteDataSource {
     final jsonMap = jsonDecode(response.body) as Map<String, dynamic>;
     final text = _extractTextFromChunk(jsonMap);
     if (text == null || text.isEmpty) {
-      throw const ServerException(message: 'No response text returned by Gemini');
+      throw const ServerException(
+        message: 'No response text returned by Gemini',
+      );
     }
     return text;
   }

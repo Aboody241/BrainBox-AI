@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:brain_box_ai/core/result/result.dart';
 import 'package:brain_box_ai/features/chat/domain/entities/chat_message.dart';
 import 'package:brain_box_ai/features/chat/domain/repositories/chat_repository.dart';
@@ -6,22 +8,34 @@ import 'package:brain_box_ai/features/chat/domain/usecases/stream_chat_response_
 import 'package:flutter_test/flutter_test.dart';
 
 class FakeChatRepository implements ChatRepository {
+  Uint8List? lastImageBytes;
+
   @override
   Stream<String> streamMessage(
     String prompt, {
     List<ChatMessage> history = const [],
+    Uint8List? imageBytes,
+    String? mimeType,
     String? model,
   }) async* {
-    yield 'Streamed ';
-    yield 'response';
+    lastImageBytes = imageBytes;
+    if (imageBytes != null) {
+      yield 'Vision analysis of image';
+    } else {
+      yield 'Streamed ';
+      yield 'response';
+    }
   }
 
   @override
   Future<Result<String>> sendMessage(
     String prompt, {
     List<ChatMessage> history = const [],
+    Uint8List? imageBytes,
+    String? mimeType,
     String? model,
   }) async {
+    lastImageBytes = imageBytes;
     return const Result.success('Complete response');
   }
 }
@@ -38,6 +52,15 @@ void main() {
       final useCase = StreamChatResponseUseCase(repository);
       final chunks = await useCase('Hello').toList();
       expect(chunks, ['Streamed ', 'response']);
+    });
+
+    test('StreamChatResponseUseCase passes multimodal imageBytes', () async {
+      final useCase = StreamChatResponseUseCase(repository);
+      final fakeBytes = Uint8List.fromList([1, 2, 3, 4]);
+      final chunks =
+          await useCase('Describe this image', imageBytes: fakeBytes).toList();
+      expect(chunks, ['Vision analysis of image']);
+      expect(repository.lastImageBytes, fakeBytes);
     });
 
     test('SendChatMessageUseCase returns Success with text', () async {

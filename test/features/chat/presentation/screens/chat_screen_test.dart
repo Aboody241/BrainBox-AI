@@ -41,6 +41,30 @@ void main() {
     });
 
     testWidgets(
+        'tapping image upload button opens image source bottom sheet',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: ChatScreen(conversationId: 'test-image-upload'),
+        ),
+      );
+
+      // Tap image upload icon button
+      final imageUploadFinder = find.byWidgetPredicate((widget) =>
+          widget is SvgPicture &&
+          widget.bytesLoader.toString().contains('image_upload'));
+      expect(imageUploadFinder, findsOneWidget);
+
+      await tester.tap(imageUploadFinder);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Take Photo'), findsOneWidget);
+      expect(find.text('Choose from Gallery'), findsOneWidget);
+      expect(find.byIcon(Icons.camera_alt_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.photo_library_outlined), findsOneWidget);
+    });
+
+    testWidgets(
         'sending message displays user bubble, AI bubble with avatar, and stop generating button',
         (tester) async {
       await tester.pumpWidget(
@@ -61,15 +85,15 @@ void main() {
 
       // Advance clock slightly for AI streaming initiation
       await tester.pump(const Duration(milliseconds: 350));
-      expect(find.text('Stop generating...'), findsOneWidget);
+      expect(find.text('Stop Generating'), findsOneWidget);
       expect(find.byIcon(Icons.content_copy_outlined), findsOneWidget);
       expect(find.byIcon(Icons.share_outlined), findsOneWidget);
 
       // Tap stop generating
-      await tester.tap(find.text('Stop generating...'));
+      await tester.tap(find.text('Stop Generating'));
       await tester.pump();
 
-      expect(find.text('Stop generating...'), findsNothing);
+      expect(find.text('Stop Generating'), findsNothing);
       expect(find.textContaining('Regenerate'), findsOneWidget);
     });
 

@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../app/di/service_locator.dart';
 import '../../../../core/presentation/responsive/responsive.dart';
@@ -22,6 +23,8 @@ class ChatMessageItem {
   final bool isUser;
   final DateTime timestamp;
   bool isStreaming;
+  final Uint8List? imageBytes;
+  final String? imagePath;
 
   ChatMessageItem({
     required this.id,
@@ -29,6 +32,8 @@ class ChatMessageItem {
     required this.isUser,
     required this.timestamp,
     this.isStreaming = false,
+    this.imageBytes,
+    this.imagePath,
   });
 }
 
@@ -52,6 +57,8 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isTopBarVisible = true;
   Timer? _streamTimer;
   StreamSubscription<String>? _streamSubscription;
+  Uint8List? _attachedImageBytes;
+  String? _attachedImagePath;
 
   static const List<String> _capabilityPrompts = [
     'Explain quantum computing in simple terms',
@@ -100,20 +107,128 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        final bytes = await pickedFile.readAsBytes();
+        setState(() {
+          _attachedImageBytes = bytes;
+          _attachedImagePath = pickedFile.path;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.showError(
+          context,
+          message: 'Could not attach image: $e',
+        );
+      }
+    }
+  }
+
+  void _showImageSourceModal() {
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF3F4F6),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt_outlined,
+                      color: AppColors.primary,
+                      size: 22,
+                    ),
+                  ),
+                  title: Text(
+                    'Take Photo',
+                    style: AppTypography.titleSmall.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    _pickImage(ImageSource.camera);
+                  },
+                ),
+                ListTile(
+                  leading: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF3F4F6),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.photo_library_outlined,
+                      color: AppColors.primary,
+                      size: 22,
+                    ),
+                  ),
+                  title: Text(
+                    'Choose from Gallery',
+                    style: AppTypography.titleSmall.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    _pickImage(ImageSource.gallery);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _sendMessage([String? customText]) async {
     final text = (customText ?? _messageController.text).trim();
-    if (text.isEmpty || _isGenerating) return;
+    final imageBytes = _attachedImageBytes;
+    final imagePath = _attachedImagePath;
+
+    if ((text.isEmpty && imageBytes == null) || _isGenerating) return;
 
     final userMsg = ChatMessageItem(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       text: text,
       isUser: true,
       timestamp: DateTime.now(),
+      imageBytes: imageBytes,
+      imagePath: imagePath,
     );
 
     setState(() {
       _messages.add(userMsg);
       _isGenerating = true;
+      _attachedImageBytes = null;
+      _attachedImagePath = null;
     });
 
     _messageController.clear();
@@ -138,6 +253,8 @@ class _ChatScreenState extends State<ChatScreen> {
               content: m.text,
               isUser: m.isUser,
               timestamp: m.timestamp,
+              imageBytes: m.imageBytes,
+              imagePath: m.imagePath,
             ))
         .toList();
 
@@ -145,7 +262,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
     if (sl.isRegistered<StreamChatResponseUseCase>()) {
       final streamUseCase = sl<StreamChatResponseUseCase>();
-      _streamSubscription = streamUseCase(text, history: history).listen(
+      final promptToSend = text.isEmpty ? 'Describe this image in detail.' : text;
+
+      _streamSubscription = streamUseCase(
+        promptToSend,
+        history: history,
+        imageBytes: imageBytes,
+      ).listen(
         (chunk) {
           if (!mounted) return;
           setState(() {
@@ -221,16 +344,10 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           child: Column(
             children: [
-              // Floating Top Navigation Bar (Hides on scroll down)
-              AnimatedSize(
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeInOut,
-                child: _isTopBarVisible
-                    ? _buildTopBar()
-                    : const SizedBox.shrink(),
-              ),
+              // Floating App Bar (Hides on Scroll Down, Shows on Scroll Up)
+              _buildFloatingTopBar(),
 
-              // Messages List or Welcome Cards with Scroll Direction Listener
+              // Messages / Empty State Content
               Expanded(
                 child: NotificationListener<UserScrollNotification>(
                   onNotification: (notification) {
@@ -238,27 +355,30 @@ class _ChatScreenState extends State<ChatScreen> {
                       if (_isTopBarVisible) {
                         setState(() => _isTopBarVisible = false);
                       }
-                    } else if (notification.direction == ScrollDirection.forward) {
+                    } else if (notification.direction ==
+                        ScrollDirection.forward) {
                       if (!_isTopBarVisible) {
                         setState(() => _isTopBarVisible = true);
                       }
                     }
-                    return false;
+                    return true;
                   },
                   child: _messages.isEmpty
-                      ? _buildEmptyWelcomeState()
+                      ? _buildEmptyState()
                       : _buildMessagesList(),
                 ),
               ),
 
-              // Stop Generating button (above input field when generating)
+              // Stop Generating Button (Visible when AI is streaming)
               if (_isGenerating) ...[
-                const SizedBox(height: AppSpacing.xs),
                 _buildStopGeneratingButton(),
                 const SizedBox(height: AppSpacing.xs),
               ],
 
-              // Bottom Input Box
+              // Attached Image Thumbnail Preview (if picked)
+              _buildAttachedImagePreview(),
+
+              // Message Input Bar
               _buildMessageInputField(),
             ],
           ),
@@ -267,54 +387,153 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildTopBar() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Reusable Back Button
-          const AppBackButton(),
+  Widget _buildAttachedImagePreview() {
+    if (_attachedImageBytes == null) return const SizedBox.shrink();
 
-          // More Options Button
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x0A000000),
-                  blurRadius: 12,
-                  offset: Offset(0, 4),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.xs, left: 4),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: const Color(0xFFE5E7EB),
+                  width: 1.2,
                 ),
-              ],
-            ),
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              icon: const Icon(
-                Icons.more_horiz_rounded,
-                size: 26,
-                color: Color.fromARGB(255, 116, 116, 116),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x0A000000),
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ],
               ),
-              onPressed: () {
-                _showChatOptions();
-              },
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(13),
+                child: Image.memory(
+                  _attachedImageBytes!,
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
-          ),
-        ],
+            Positioned(
+              top: -6,
+              right: -6,
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _attachedImageBytes = null;
+                    _attachedImagePath = null;
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF141718),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.close_rounded,
+                    size: 14,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildEmptyWelcomeState() {
+  Widget _buildFloatingTopBar() {
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
+      child: _isTopBarVisible
+          ? Container(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Back Button with custom container
+                  InkWell(
+                    onTap: () => context.pop(),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: const Color(0xFFE5E7EB),
+                          width: 1,
+                        ),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          size: 18,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Center Chat Title
+                  Text(
+                    'Chat',
+                    style: AppTypography.titleLarge.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+
+                  // Right Options / Menu Action
+                  InkWell(
+                    onTap: _showChatOptions,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: const Color(0xFFE5E7EB),
+                          width: 1,
+                        ),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.more_horiz_rounded,
+                          size: 22,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildEmptyState() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+      physics: const BouncingScrollPhysics(),
       child: Column(
         children: [
           const SizedBox(height: AppSpacing.xl),
-          // Heading Title
+          // Centered BrainBox Title
           Text(
             'BrainBox',
             textAlign: TextAlign.center,
@@ -327,7 +546,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           const SizedBox(height: AppSpacing.xxl),
 
-          // 5 Capability & Disclaimer Cards
+          // 5 Prompt Suggestion Cards
           ..._capabilityPrompts.map(
             (prompt) => Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -383,7 +602,7 @@ class _ChatScreenState extends State<ChatScreen> {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Flexible(
             child: Container(
@@ -395,28 +614,34 @@ class _ChatScreenState extends State<ChatScreen> {
                 color: AppColors.primary,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Text(
-                item.text,
-                style: AppTypography.bodyMedium.copyWith(
-                  color: const Color.fromARGB(255, 255, 255, 255),
-                  fontSize: 14.5,
-                  height: 1.4,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  if (item.imageBytes != null) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.memory(
+                        item.imageBytes!,
+                        width: 200,
+                        height: 200,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    if (item.text.isNotEmpty) const SizedBox(height: 8),
+                  ],
+                  if (item.text.isNotEmpty)
+                    Text(
+                      item.text,
+                      style: AppTypography.bodyMedium.copyWith(
+                        color: const Color.fromARGB(255, 255, 255, 255),
+                        fontSize: 14.5,
+                        height: 1.4,
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
-          // const SizedBox(width: AppSpacing.xs),
-          // IconButton(
-          //   icon: const Icon(
-          //     Icons.edit_outlined,
-          //     size: 20,
-          //     color: Color(0xFF9CA3AF),
-          //   ),
-          //   tooltip: 'Edit message',
-          //   onPressed: () {
-          //     _messageController.text = item.text;
-          //   },
-          // ),
           const SizedBox(width: AppSpacing.sm),
           Container(
             width: 10,
@@ -582,77 +807,30 @@ class _ChatScreenState extends State<ChatScreen> {
     final lastUserIndex = _messages.lastIndexWhere((m) => m.isUser);
     final prompt = lastUserIndex != -1
         ? _messages[lastUserIndex].text
-        : 'Explain quantum computing in simple terms';
-
-    setState(() {
-      _messages.remove(item);
-      _isGenerating = true;
-    });
-
-    final aiMsg = ChatMessageItem(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      text: '',
-      isUser: false,
-      timestamp: DateTime.now(),
-      isStreaming: true,
-    );
-
-    setState(() {
-      _messages.add(aiMsg);
-    });
-
-    final fullResponse = prompt.toLowerCase().contains('quantum')
-        ? _defaultAiResponse
-        : 'Here is a newly generated response tailored to your request. How else can I assist you?';
-
-    final words = fullResponse.split(' ');
-    var currentIndex = 0;
-
-    _streamTimer?.cancel();
-    _streamTimer = Timer.periodic(const Duration(milliseconds: 45), (timer) {
-      if (currentIndex < words.length) {
-        if (!mounted) {
-          timer.cancel();
-          return;
-        }
-        setState(() {
-          aiMsg.text = words.sublist(0, currentIndex + 1).join(' ');
-        });
-        currentIndex++;
-        _scrollToBottom();
-      } else {
-        timer.cancel();
-        _streamTimer = null;
-        if (mounted) {
-          setState(() {
-            aiMsg.isStreaming = false;
-            _isGenerating = false;
-          });
-        }
-      }
-    });
+        : 'Regenerate previous answer';
+    _sendMessage(prompt);
   }
 
   Widget _buildStopGeneratingButton() {
     return Center(
       child: InkWell(
         onTap: _stopGenerating,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
         child: Container(
           padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 9,
+            horizontal: AppSpacing.md,
+            vertical: 8,
           ),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: const Color(0xFFE5E7EB),
-              width: 1,
+              width: 1.2,
             ),
             boxShadow: const [
               BoxShadow(
-                color: Color(0x06000000),
+                color: Color(0x08000000),
                 blurRadius: 8,
                 offset: Offset(0, 2),
               ),
@@ -661,21 +839,18 @@ class _ChatScreenState extends State<ChatScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(3),
-                ),
+              const Icon(
+                Icons.stop_circle_outlined,
+                size: 18,
+                color: AppColors.primary,
               ),
-              const SizedBox(width: AppSpacing.xs),
+              const SizedBox(width: 6),
               Text(
-                'Stop generating...',
+                'Stop Generating',
                 style: AppTypography.labelMedium.copyWith(
-                  color: AppColors.textPrimary,
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                  fontSize: 13,
                 ),
               ),
             ],
@@ -714,12 +889,7 @@ class _ChatScreenState extends State<ChatScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           InkWell(
-            onTap: () {
-              AppSnackBar.showInfo(
-                context,
-                message: 'Image attachment feature coming soon.',
-              );
-            },
+            onTap: _showImageSourceModal,
             borderRadius: BorderRadius.circular(10),
             child: Padding(
               padding: const EdgeInsets.symmetric(
@@ -740,7 +910,9 @@ class _ChatScreenState extends State<ChatScreen> {
               onSubmitted: (_) => _sendMessage(),
               textInputAction: TextInputAction.send,
               decoration: InputDecoration(
-                hintText: 'Send a message.',
+                hintText: _attachedImageBytes != null
+                    ? 'Ask about this image...'
+                    : 'Send a message.',
                 hintStyle: AppTypography.bodySmall.copyWith(
                   color: const Color(0xFFC2C3CB),
                   fontSize: 14,
@@ -765,7 +937,8 @@ class _ChatScreenState extends State<ChatScreen> {
           ValueListenableBuilder<TextEditingValue>(
             valueListenable: _messageController,
             builder: (context, value, _) {
-              final isNotEmpty = value.text.trim().isNotEmpty;
+              final isNotEmpty =
+                  value.text.trim().isNotEmpty || _attachedImageBytes != null;
               return GestureDetector(
                 onTap: () => _sendMessage(),
                 behavior: HitTestBehavior.opaque,
@@ -792,22 +965,36 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       builder: (context) {
         return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.delete_outline, color: Colors.red),
-                title: const Text(
-                  'Clear Chat',
-                  style: TextStyle(color: Colors.red),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: Colors.red,
+                  ),
+                  title: const Text(
+                    'Clear Chat History',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    setState(() {
+                      _messages.clear();
+                    });
+                    AppSnackBar.showSuccess(
+                      context,
+                      message: 'Chat history cleared',
+                    );
+                  },
                 ),
-                onTap: () {
-                  _stopGenerating();
-                  setState(() => _messages.clear());
-                  context.pop();
-                },
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
