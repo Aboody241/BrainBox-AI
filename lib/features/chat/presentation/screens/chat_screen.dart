@@ -711,7 +711,29 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          InkWell(
+            onTap: () {
+              AppSnackBar.showInfo(
+                context,
+                message: 'Image attachment feature coming soon.',
+              );
+            },
+            borderRadius: BorderRadius.circular(10),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 6,
+                vertical: 6,
+              ),
+              child: SvgPicture.asset(
+                'assets/icons/image_upload.svg',
+                width: 18,
+                height: 22,
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
           Expanded(
             child: TextField(
               controller: _messageController,
