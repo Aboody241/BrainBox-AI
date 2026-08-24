@@ -16,24 +16,23 @@ void main() {
 
       expect(find.text('BrainBox'), findsOneWidget);
       expect(
-        find.text('Remembers what user said earlier in the conversation'),
+        find.text('Explain quantum computing in simple terms'),
         findsOneWidget,
       );
       expect(
-        find.text('Allows user to provide. follow-up corrections With Ai'),
+        find.text('Write a Python script to automate daily tasks'),
         findsOneWidget,
       );
       expect(
-        find.text('Limited knowledge of world and events after 2021'),
+        find.text('Give me 5 creative ideas for a sci-fi short story'),
         findsOneWidget,
       );
       expect(
-        find.text('May occasionally generate incorrect information'),
+        find.text('Draft a professional email requesting a project update'),
         findsOneWidget,
       );
       expect(
-        find.text(
-            'May occasionally produce harmful instructions or biased content'),
+        find.text('Create a 3-day travel itinerary for visiting Tokyo'),
         findsOneWidget,
       );
       expect(find.text('Send a message.'), findsOneWidget);

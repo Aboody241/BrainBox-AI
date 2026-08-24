@@ -54,11 +54,11 @@ class _ChatScreenState extends State<ChatScreen> {
   StreamSubscription<String>? _streamSubscription;
 
   static const List<String> _capabilityPrompts = [
-    'Remembers what user said earlier in the conversation',
-    'Allows user to provide. follow-up corrections With Ai',
-    'Limited knowledge of world and events after 2021',
-    'May occasionally generate incorrect information',
-    'May occasionally produce harmful instructions or biased content',
+    'Explain quantum computing in simple terms',
+    'Write a Python script to automate daily tasks',
+    'Give me 5 creative ideas for a sci-fi short story',
+    'Draft a professional email requesting a project update',
+    'Create a 3-day travel itinerary for visiting Tokyo',
   ];
 
   static const String _defaultAiResponse =
