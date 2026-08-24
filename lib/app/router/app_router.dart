@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/auth/presentation/screens/login_form_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
@@ -31,6 +32,13 @@ abstract final class AppRouter {
         name: AppRoutes.loginName,
         builder: (BuildContext context, GoRouterState state) {
           return const LoginScreen();
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.loginForm,
+        name: AppRoutes.loginFormName,
+        builder: (BuildContext context, GoRouterState state) {
+          return const LoginFormScreen();
         },
       ),
       GoRoute(

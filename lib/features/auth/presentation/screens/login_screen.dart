@@ -8,60 +8,32 @@ import '../../../../core/presentation/responsive/responsive.dart';
 import '../../../../core/presentation/theme/app_colors.dart';
 import '../../../../core/presentation/theme/app_spacing.dart';
 import '../../../../core/presentation/theme/app_typography.dart';
-import '../../../../core/presentation/widgets/widgets.dart';
 import '../viewmodels/auth_state.dart';
 import '../viewmodels/auth_view_model.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  bool _showForm = false;
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _handleLogin() async {
-    if (!_showForm) {
-      setState(() => _showForm = true);
-      return;
-    }
-
-    if (!(_formKey.currentState?.validate() ?? false)) return;
-
+  Future<void> _handleSocialAuth(BuildContext context) async {
     final authVm = sl<AuthViewModel>();
-    final success = await authVm.login(
-      _emailController.text.trim(),
-      _passwordController.text,
-    );
+    final success = await authVm.login('user@example.com', 'password123');
 
-    if (!mounted) return;
+    if (!context.mounted) return;
 
     if (success) {
       context.go(AppRoutes.home);
     } else {
       final state = authVm.state;
       if (state is AuthError) {
-        AppSnackBar.showError(context, message: state.message);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(state.message)),
+        );
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final authVm = sl<AuthViewModel>();
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -71,261 +43,188 @@ class _LoginScreenState extends State<LoginScreen> {
             horizontal: AppSpacing.xl,
             vertical: AppSpacing.lg,
           ),
-          child: ListenableBuilder(
-            listenable: authVm,
-            builder: (context, _) {
-              final isLoading = authVm.state is AuthLoading;
-
-              return Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      const SizedBox(height: AppSpacing.xxs),
-                      // App Logo from assets/logos/Logo.svg
-                      Center(
-                        child: SvgPicture.asset(
-                          'assets/logos/Logo.svg',
-                          width: 86,
-                          height: 102,
-                          colorFilter: const ColorFilter.mode(
-                            AppColors.primary,
-                            BlendMode.srcIn,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xl),
-                      // Title
-                      Text(
-                        'Welcome to',
-                        textAlign: TextAlign.center,
-                        style: AppTypography.displayMedium.copyWith(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                          height: 1.2,
-                        ),
-                      ),
-                      Text(
-                        'BrainBox',
-                        textAlign: TextAlign.center,
-                        style: AppTypography.displayMedium.copyWith(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                          height: 1.2,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xxl),
-
-                      // Optional Form fields
-                      if (_showForm) ...[
-                        AppTextField(
-                          controller: _emailController,
-                          hintText: 'Email Address',
-                          keyboardType: TextInputType.emailAddress,
-                          prefixIcon: const Icon(
-                            Icons.mail_outline,
-                            color: AppColors.textfieldIcons,
-                          ),
-                          validator: (String? value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your email';
-                            }
-                            if (!value.contains('@')) {
-                              return 'Please enter a valid email';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        AppTextField(
-                          controller: _passwordController,
-                          hintText: 'Password',
-                          isPassword: true,
-                          prefixIcon: const Icon(
-                            Icons.lock_outline,
-                            color: AppColors.textfieldIcons,
-                          ),
-                          validator: (String? value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your password';
-                            }
-                            if (value.length < 6) {
-                              return 'Password must be at least 6 characters';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
-                      ],
-
-                      // Main Log in Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: isLoading ? null : _handleLogin,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            elevation: 4,
-                            shadowColor: AppColors.primary.withValues(alpha: 0.3),
-                            shape: const StadiumBorder(),
-                          ),
-                          child: isLoading
-                              ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white,
-                                    ),
-                                  ),
-                                )
-                              : Text(
-                                  _showForm ? 'Sign In' : 'Log in',
-                                  style: AppTypography.titleSmall.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-
-                      // Sign up Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: () => context.push(AppRoutes.register),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFE5E7EB),
-                            foregroundColor: const Color(0xFF9CA3AF),
-                            elevation: 0,
-                            shape: const StadiumBorder(),
-                          ),
-                          child: Text(
-                            'Sign up',
-                            style: AppTypography.titleSmall.copyWith(
-                              color: const Color.fromARGB(255, 0, 0, 0),
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xxl),
-
-                      // Social login text
-                      Text(
-                        'Continue With Accounts',
-                        textAlign: TextAlign.center,
-                        style: AppTypography.bodySmall.copyWith(
-                          color: const Color(0xFF9CA3AF),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-
-                      // Social Buttons Row with icons from assets/icons
-                      Row(
-                        children: [
-                          Expanded(
-                            child: SizedBox(
-                              height: 50,
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  // Mock Google Auth
-                                  _emailController.text = 'user@example.com';
-                                  _passwordController.text = 'password123';
-                                  _handleLogin();
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFF8D7D0),
-                                  foregroundColor: const Color(0xFFD9534F),
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Image.asset(
-                                      'assets/icons/icons8-google-96.png',
-                                      width: 20,
-                                      height: 20,
-                                    ),
-                                    const SizedBox(width: AppSpacing.xs),
-                                    Text(
-                                      'GOOGLE',
-                                      style: AppTypography.titleSmall.copyWith(
-                                        color: const Color(0xFFD9534F),
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 13,
-                                        letterSpacing: 0.8,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            child: SizedBox(
-                              height: 50,
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  // Mock Facebook Auth
-                                  _emailController.text = 'user@example.com';
-                                  _passwordController.text = 'password123';
-                                  _handleLogin();
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFD6E2F5),
-                                  foregroundColor: const Color(0xFF3B5998),
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Image.asset(
-                                      'assets/icons/icons8-facebook-96.png',
-                                      width: 20,
-                                      height: 20,
-                                    ),
-                                    const SizedBox(width: AppSpacing.xs),
-                                    Text(
-                                      'FACEBOOK',
-                                      style: AppTypography.titleSmall.copyWith(
-                                        color: const Color(0xFF3B5998),
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 13,
-                                        letterSpacing: 0.8,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20)
-                    ],
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                const SizedBox(height: AppSpacing.xxs),
+                // App Logo from assets/logos/Logo.svg
+                Center(
+                  child: SvgPicture.asset(
+                    'assets/logos/Logo.svg',
+                    width: 86,
+                    height: 102,
+                    colorFilter: const ColorFilter.mode(
+                      AppColors.primary,
+                      BlendMode.srcIn,
+                    ),
                   ),
                 ),
-              );
-            },
+                const SizedBox(height: AppSpacing.xl),
+                // Title
+                Text(
+                  'Welcome to',
+                  textAlign: TextAlign.center,
+                  style: AppTypography.displayMedium.copyWith(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                    height: 1.2,
+                  ),
+                ),
+                Text(
+                  'BrainBox',
+                  textAlign: TextAlign.center,
+                  style: AppTypography.displayMedium.copyWith(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xxl),
+
+                // Main Log in Button -> Navigates to separated Login Form Screen
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: () => context.push(AppRoutes.loginForm),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      elevation: 4,
+                      shadowColor: AppColors.primary.withValues(alpha: 0.3),
+                      shape: const StadiumBorder(),
+                    ),
+                    child: Text(
+                      'Log in',
+                      style: AppTypography.titleSmall.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+
+                // Sign up Button -> Navigates to Register Screen
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: () => context.push(AppRoutes.register),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFE5E7EB),
+                      foregroundColor: const Color.fromARGB(255, 0, 0, 0),
+                      elevation: 0,
+                      shape: const StadiumBorder(),
+                    ),
+                    child: Text(
+                      'Sign up',
+                      style: AppTypography.titleSmall.copyWith(
+                        color: const Color.fromARGB(255, 0, 0, 0),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xxl),
+
+                // Social login text
+                Text(
+                  'Continue With Accounts',
+                  textAlign: TextAlign.center,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: const Color(0xFF9CA3AF),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+
+                // Social Buttons Row
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: () => _handleSocialAuth(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFF8D7D0),
+                            foregroundColor: const Color(0xFFD9534F),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                'assets/icons/icons8-google-96.png',
+                                width: 20,
+                                height: 20,
+                              ),
+                              const SizedBox(width: AppSpacing.xs),
+                              Text(
+                                'GOOGLE',
+                                style: AppTypography.titleSmall.copyWith(
+                                  color: const Color(0xFFD9534F),
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: () => _handleSocialAuth(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFD6E2F5),
+                            foregroundColor: const Color(0xFF3B5998),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                'assets/icons/icons8-facebook-96.png',
+                                width: 20,
+                                height: 20,
+                              ),
+                              const SizedBox(width: AppSpacing.xs),
+                              Text(
+                                'FACEBOOK',
+                                style: AppTypography.titleSmall.copyWith(
+                                  color: const Color(0xFF3B5998),
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),
