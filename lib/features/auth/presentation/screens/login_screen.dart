@@ -232,7 +232,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: AppSpacing.lg),
 
-                      // Social Buttons Row
+                      // Social Buttons Row with icons from assets/icons
                       Row(
                         children: [
                           Expanded(
@@ -253,14 +253,25 @@ class _LoginScreenState extends State<LoginScreen> {
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                 ),
-                                child: Text(
-                                  'GOOGLE',
-                                  style: AppTypography.titleSmall.copyWith(
-                                    color: const Color(0xFFD9534F),
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 13,
-                                    letterSpacing: 0.8,
-                                  ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Image.asset(
+                                      'assets/icons/icons8-google-96.png',
+                                      width: 20,
+                                      height: 20,
+                                    ),
+                                    const SizedBox(width: AppSpacing.xs),
+                                    Text(
+                                      'GOOGLE',
+                                      style: AppTypography.titleSmall.copyWith(
+                                        color: const Color(0xFFD9534F),
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13,
+                                        letterSpacing: 0.8,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -284,14 +295,25 @@ class _LoginScreenState extends State<LoginScreen> {
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                 ),
-                                child: Text(
-                                  'FACEBOOK',
-                                  style: AppTypography.titleSmall.copyWith(
-                                    color: const Color(0xFF3B5998),
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 13,
-                                    letterSpacing: 0.8,
-                                  ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Image.asset(
+                                      'assets/icons/icons8-facebook-96.png',
+                                      width: 20,
+                                      height: 20,
+                                    ),
+                                    const SizedBox(width: AppSpacing.xs),
+                                    Text(
+                                      'FACEBOOK',
+                                      style: AppTypography.titleSmall.copyWith(
+                                        color: const Color(0xFF3B5998),
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13,
+                                        letterSpacing: 0.8,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
