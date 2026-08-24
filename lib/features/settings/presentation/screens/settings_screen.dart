@@ -6,7 +6,6 @@ import '../../../../core/presentation/responsive/responsive.dart';
 import '../../../../core/presentation/theme/app_colors.dart';
 import '../../../../core/presentation/theme/app_spacing.dart';
 import '../../../../core/presentation/theme/app_typography.dart';
-import '../../../../core/presentation/widgets/widgets.dart';
 import '../widgets/profile_setting_tile.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -69,24 +68,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildTopBar(BuildContext context) {
-    return Row(
-      children: [
-        const AppBackButton(),
-        Expanded(
-          child: Center(
-            child: Text(
-              'Profile',
-              style: AppTypography.titleLarge.copyWith(
-                fontWeight: FontWeight.w700,
-                fontSize: 20,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
+    return Center(
+      child: Text(
+        'Profile',
+        style: AppTypography.titleLarge.copyWith(
+          fontWeight: FontWeight.w700,
+          fontSize: 20,
+          color: AppColors.textPrimary,
         ),
-        // Sized placeholder to balance the back button
-        const SizedBox(width: 44),
-      ],
+      ),
     );
   }
 

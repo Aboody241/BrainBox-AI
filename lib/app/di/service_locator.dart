@@ -9,6 +9,11 @@ import '../../features/auth/domain/usecases/login_usecase.dart';
 import '../../features/auth/domain/usecases/logout_usecase.dart';
 import '../../features/auth/domain/usecases/register_usecase.dart';
 import '../../features/auth/presentation/viewmodels/auth_view_model.dart';
+import '../../features/chat/data/datasources/gemini_remote_data_source.dart';
+import '../../features/chat/data/repositories/chat_repository_impl.dart';
+import '../../features/chat/domain/repositories/chat_repository.dart';
+import '../../features/chat/domain/usecases/send_chat_message_usecase.dart';
+import '../../features/chat/domain/usecases/stream_chat_response_usecase.dart';
 
 /// Global service locator instance.
 final GetIt sl = GetIt.instance;
@@ -67,7 +72,21 @@ abstract final class ServiceLocator {
   static Future<void> _initConversations() async {}
 
   /// Chat feature dependencies
-  static Future<void> _initChat() async {}
+  static Future<void> _initChat() async {
+    // DataSource
+    sl.registerLazySingleton<GeminiRemoteDataSource>(
+      () => GeminiRemoteDataSourceImpl(),
+    );
+
+    // Repository
+    sl.registerLazySingleton<ChatRepository>(
+      () => ChatRepositoryImpl(sl()),
+    );
+
+    // UseCases
+    sl.registerLazySingleton(() => StreamChatResponseUseCase(sl()));
+    sl.registerLazySingleton(() => SendChatMessageUseCase(sl()));
+  }
 
   /// Settings feature dependencies
   static Future<void> _initSettings() async {}

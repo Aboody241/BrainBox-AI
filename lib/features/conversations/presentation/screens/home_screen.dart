@@ -7,7 +7,6 @@ import '../../../../core/presentation/responsive/responsive.dart';
 import '../../../../core/presentation/theme/app_colors.dart';
 import '../../../../core/presentation/theme/app_spacing.dart';
 import '../../../../core/presentation/theme/app_typography.dart';
-import '../../../../core/presentation/widgets/widgets.dart';
 import '../../../settings/presentation/screens/settings_screen.dart';
 import '../widgets/recent_chats_view.dart';
 
@@ -54,8 +53,6 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: AppSpacing.xs),
-            // Top Reusable Back Button
-            const AppBackButton(),
 
             // Centered Main Content
             Expanded(

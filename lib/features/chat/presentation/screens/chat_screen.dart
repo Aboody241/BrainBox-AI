@@ -6,11 +6,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/di/service_locator.dart';
 import '../../../../core/presentation/responsive/responsive.dart';
 import '../../../../core/presentation/theme/app_colors.dart';
 import '../../../../core/presentation/theme/app_spacing.dart';
 import '../../../../core/presentation/theme/app_typography.dart';
 import '../../../../core/presentation/widgets/widgets.dart';
+import '../../domain/entities/chat_message.dart';
+import '../../domain/usecases/stream_chat_response_usecase.dart';
 
 class ChatMessageItem {
   final String id;
@@ -47,6 +50,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isGenerating = false;
   bool _isTopBarVisible = true;
   Timer? _streamTimer;
+  StreamSubscription<String>? _streamSubscription;
 
   static const List<String> _capabilityPrompts = [
     'Remembers what user said earlier in the conversation',
@@ -61,6 +65,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    _streamSubscription?.cancel();
     _streamTimer?.cancel();
     _messageController.dispose();
     _scrollController.dispose();
@@ -80,6 +85,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _stopGenerating() {
+    _streamSubscription?.cancel();
+    _streamSubscription = null;
     _streamTimer?.cancel();
     _streamTimer = null;
     if (mounted) {
@@ -111,10 +118,6 @@ class _ChatScreenState extends State<ChatScreen> {
     _messageController.clear();
     _scrollToBottom();
 
-    // Prepare AI streaming response
-    await Future<void>.delayed(const Duration(milliseconds: 300));
-    if (!mounted) return;
-
     final aiMsg = ChatMessageItem(
       id: (DateTime.now().millisecondsSinceEpoch + 1).toString(),
       text: '',
@@ -127,36 +130,81 @@ class _ChatScreenState extends State<ChatScreen> {
       _messages.add(aiMsg);
     });
 
-    final fullResponse = text.toLowerCase().contains('quantum')
-        ? _defaultAiResponse
-        : 'I am BrainBox AI, your smart conversational assistant. How can I help you achieve your goals today? Feel free to ask me anything!';
+    final history = _messages
+        .where((m) => m.id != userMsg.id && m.id != aiMsg.id)
+        .map((m) => ChatMessage(
+              id: m.id,
+              content: m.text,
+              isUser: m.isUser,
+              timestamp: m.timestamp,
+            ))
+        .toList();
 
-    final words = fullResponse.split(' ');
-    var currentIndex = 0;
+    await _streamSubscription?.cancel();
 
-    _streamTimer?.cancel();
-    _streamTimer = Timer.periodic(const Duration(milliseconds: 45), (timer) {
-      if (currentIndex < words.length) {
-        if (!mounted) {
-          timer.cancel();
-          return;
-        }
-        setState(() {
-          aiMsg.text = words.sublist(0, currentIndex + 1).join(' ');
-        });
-        currentIndex++;
-        _scrollToBottom();
-      } else {
-        timer.cancel();
-        _streamTimer = null;
-        if (mounted) {
+    if (sl.isRegistered<StreamChatResponseUseCase>()) {
+      final streamUseCase = sl<StreamChatResponseUseCase>();
+      _streamSubscription = streamUseCase(text, history: history).listen(
+        (chunk) {
+          if (!mounted) return;
+          setState(() {
+            aiMsg.text += chunk;
+          });
+          _scrollToBottom();
+        },
+        onError: (error) {
+          if (!mounted) return;
+          setState(() {
+            if (aiMsg.text.isEmpty) {
+              aiMsg.text =
+                  'Sorry, I encountered an issue connecting to Gemini. Please check your network and try again.';
+            }
+            aiMsg.isStreaming = false;
+            _isGenerating = false;
+          });
+        },
+        onDone: () {
+          if (!mounted) return;
           setState(() {
             aiMsg.isStreaming = false;
             _isGenerating = false;
           });
+        },
+        cancelOnError: true,
+      );
+    } else {
+      // Fallback generator for unmocked standalone tests
+      final fullResponse = text.toLowerCase().contains('quantum')
+          ? _defaultAiResponse
+          : 'I am BrainBox AI, your smart conversational assistant. How can I help you achieve your goals today? Feel free to ask me anything!';
+
+      final words = fullResponse.split(' ');
+      var currentIndex = 0;
+
+      _streamTimer?.cancel();
+      _streamTimer = Timer.periodic(const Duration(milliseconds: 45), (timer) {
+        if (currentIndex < words.length) {
+          if (!mounted) {
+            timer.cancel();
+            return;
+          }
+          setState(() {
+            aiMsg.text = words.sublist(0, currentIndex + 1).join(' ');
+          });
+          currentIndex++;
+          _scrollToBottom();
+        } else {
+          timer.cancel();
+          _streamTimer = null;
+          if (mounted) {
+            setState(() {
+              aiMsg.isStreaming = false;
+              _isGenerating = false;
+            });
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   @override

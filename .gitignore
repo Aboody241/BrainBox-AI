@@ -1,4 +1,7 @@
-# Miscellaneous
+# Secrets & Keys
+key.md
+*.env
+.env*
 *.class
 *.log
 *.pyc
