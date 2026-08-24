@@ -136,9 +136,10 @@ core/
 **الهدف:** بناء persistence layer قبل الشات.
 
 ### Database Tables:
-- `users`
-- `conversations`
-- `messages`
+- `users`: `id`, `username`, `email`, `password`, `image`, `created_at`, `is_logged_in`
+- `conversations`: `id`, `user_id`, `title`, `created_at`, `updated_at`, `is_pinned`
+- `messages`: `id`, `conversation_id`, `sender_type`, `content`, `timestamp`, `status`
+- `user_settings`: `user_id`, `theme_mode`, `language`, `notifications_enabled`
 
 ### المهام:
 - Drift setup & database configuration
