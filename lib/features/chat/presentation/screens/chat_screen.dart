@@ -247,7 +247,7 @@ class _ChatScreenState extends State<ChatScreen> {
               icon: const Icon(
                 Icons.more_horiz_rounded,
                 size: 26,
-                color: Color(0xFFC2C3CB),
+                color: Color.fromARGB(255, 116, 116, 116),
               ),
               onPressed: () {
                 _showChatOptions();
@@ -383,111 +383,223 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildAiBubble(ChatMessageItem item) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 237, 238, 241),
-        borderRadius: BorderRadius.circular(22),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Row with Avatar & Actions
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    final isLastAiMessage = _messages.isNotEmpty && _messages.last == item;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: double.infinity,
+          margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(255, 237, 238, 241),
+            borderRadius: BorderRadius.circular(22),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // BrainBox Avatar
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF141718),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: SvgPicture.asset(
-                    'assets/logos/Logo.svg',
-                    width: 22,
-                    height: 22,
-                    colorFilter: const ColorFilter.mode(
-                      Colors.white,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                ),
-              ),
-              // Action Buttons (Copy & Share)
+              // Header Row with Avatar & Actions
               Row(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  IconButton(
-                    padding: const EdgeInsets.all(2),
-                    constraints: const BoxConstraints(),
-                    icon: const Icon(
-                      Icons.content_copy_outlined,
-                      size: 18,
-                      color: Color(0xFF9CA3AF),
+                  // BrainBox Avatar
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF141718),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    tooltip: 'Copy',
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(text: item.text));
-                      AppSnackBar.showSuccess(
-                        context,
-                        message: 'Message copied to clipboard',
-                      );
-                    },
+                    child: Center(
+                      child: SvgPicture.asset(
+                        'assets/logos/Logo.svg',
+                        width: 22,
+                        height: 22,
+                        colorFilter: const ColorFilter.mode(
+                          Colors.white,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
                   ),
-                  const SizedBox(width: AppSpacing.xxs),
-                  IconButton(
-                    padding: const EdgeInsets.all(2),
-                    constraints: const BoxConstraints(),
-                    icon: const Icon(
-                      Icons.share_outlined,
-                      size: 18,
-                      color: Color(0xFF9CA3AF),
-                    ),
-                    tooltip: 'Share',
-                    onPressed: () {
-                      AppSnackBar.showInfo(
-                        context,
-                        message: 'Sharing message...',
-                      );
-                    },
+                  // Action Buttons (Copy & Share)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        padding: const EdgeInsets.all(2),
+                        constraints: const BoxConstraints(),
+                        icon: const Icon(
+                          Icons.content_copy_outlined,
+                          size: 18,
+                          color: Color(0xFF9CA3AF),
+                        ),
+                        tooltip: 'Copy',
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: item.text));
+                          AppSnackBar.showSuccess(
+                            context,
+                            message: 'Message copied to clipboard',
+                          );
+                        },
+                      ),
+                      const SizedBox(width: AppSpacing.xxs),
+                      IconButton(
+                        padding: const EdgeInsets.all(2),
+                        constraints: const BoxConstraints(),
+                        icon: const Icon(
+                          Icons.share_outlined,
+                          size: 18,
+                          color: Color(0xFF9CA3AF),
+                        ),
+                        tooltip: 'Share',
+                        onPressed: () {
+                          AppSnackBar.showInfo(
+                            context,
+                            message: 'Sharing message...',
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
+              const SizedBox(height: AppSpacing.md),
+
+              // Message Body with live cursor indicator
+              RichText(
+                text: TextSpan(
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: const Color(0xFF2C2F38),
+                    fontSize: 15,
+                    height: 1.6,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  children: [
+                    TextSpan(text: item.text),
+                    if (item.isStreaming)
+                      const TextSpan(
+                        text: ' █',
+                        style: TextStyle(
+                          color: Color(0xFF141718),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
-
-          // Message Body with live cursor indicator
-          RichText(
-            text: TextSpan(
-              style: AppTypography.bodyMedium.copyWith(
-                color: const Color(0xFF2C2F38),
-                fontSize: 15,
-                height: 1.6,
-                fontWeight: FontWeight.w400,
-              ),
-              children: [
-                TextSpan(text: item.text),
-                if (item.isStreaming)
-                  const TextSpan(
-                    text: ' █',
-                    style: TextStyle(
-                      color: Color(0xFF141718),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-              ],
-            ),
-          ),
+        ),
+        if (isLastAiMessage && !item.isStreaming && !_isGenerating) ...[
+          const SizedBox(height: AppSpacing.xs),
+          _buildRegenerateButton(item),
+          const SizedBox(height: AppSpacing.xs),
         ],
+      ],
+    );
+  }
+
+  Widget _buildRegenerateButton(ChatMessageItem item) {
+    return InkWell(
+      onTap: () => _regenerateResponse(item),
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: const Color(0xFFD1D5DB),
+                  width: 1.5,
+                ),
+              ),
+              child: const Center(
+                child: Icon(
+                  Icons.sync_alt_rounded,
+                  size: 22,
+                  color: Color(0xFF6B7280),
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Regenerate Respond',
+              style: AppTypography.labelMedium.copyWith(
+                color: const Color(0xFF6B7280),
+                fontSize: 13.5,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  void _regenerateResponse(ChatMessageItem item) {
+    if (_isGenerating) return;
+    final lastUserIndex = _messages.lastIndexWhere((m) => m.isUser);
+    final prompt = lastUserIndex != -1
+        ? _messages[lastUserIndex].text
+        : 'Explain quantum computing in simple terms';
+
+    setState(() {
+      _messages.remove(item);
+      _isGenerating = true;
+    });
+
+    final aiMsg = ChatMessageItem(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      text: '',
+      isUser: false,
+      timestamp: DateTime.now(),
+      isStreaming: true,
+    );
+
+    setState(() {
+      _messages.add(aiMsg);
+    });
+
+    final fullResponse = prompt.toLowerCase().contains('quantum')
+        ? _defaultAiResponse
+        : 'Here is a newly generated response tailored to your request. How else can I assist you?';
+
+    final words = fullResponse.split(' ');
+    var currentIndex = 0;
+
+    _streamTimer?.cancel();
+    _streamTimer = Timer.periodic(const Duration(milliseconds: 45), (timer) {
+      if (currentIndex < words.length) {
+        if (!mounted) {
+          timer.cancel();
+          return;
+        }
+        setState(() {
+          aiMsg.text = words.sublist(0, currentIndex + 1).join(' ');
+        });
+        currentIndex++;
+        _scrollToBottom();
+      } else {
+        timer.cancel();
+        _streamTimer = null;
+        if (mounted) {
+          setState(() {
+            aiMsg.isStreaming = false;
+            _isGenerating = false;
+          });
+        }
+      }
+    });
   }
 
   Widget _buildStopGeneratingButton() {

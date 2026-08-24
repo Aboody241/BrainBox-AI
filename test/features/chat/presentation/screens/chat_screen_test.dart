@@ -71,6 +71,7 @@ void main() {
       await tester.pump();
 
       expect(find.text('Stop generating...'), findsNothing);
+      expect(find.text('Regenerate Respond'), findsOneWidget);
     });
 
     testWidgets('floating top bar is present and responsive',
