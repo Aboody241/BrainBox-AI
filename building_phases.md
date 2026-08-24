@@ -39,8 +39,8 @@ docs/
 - [x] App theme configuration
 - [x] Centralized routing setup
 - [x] Dependency Injection (GetIt)
-- Core error system & typed Failure models
-- `Result<T>` abstraction (`Success` / `Failure`)
+- [x] Core error system & typed Failure models
+- [x] `Result<T>` abstraction (`Success` / `Failure`)
 - Environment configuration
 - App entry point
 
