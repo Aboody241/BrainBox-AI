@@ -525,7 +525,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               child: const Center(
                 child: Icon(
-                  Icons.sync_alt_rounded,
+                  Icons.change_circle,
                   size: 22,
                   color: Color(0xFF6B7280),
                 ),
@@ -533,10 +533,10 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              'Regenerate Respond',
+              'Regenerate\n  Respond',
               style: AppTypography.labelMedium.copyWith(
                 color: const Color(0xFF6B7280),
-                fontSize: 13.5,
+                fontSize: 10.5,
                 fontWeight: FontWeight.w500,
               ),
             ),

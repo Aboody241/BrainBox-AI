@@ -155,19 +155,14 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             _buildNavItem(
               index: 1,
-              icon: Icons.grid_view_rounded,
+              icon: Icons.access_time_rounded,
               onTap: () => setState(() => _selectedNavIndex = 1),
             ),
             _buildNavItem(
               index: 2,
-              icon: Icons.access_time_rounded,
-              onTap: () => setState(() => _selectedNavIndex = 2),
-            ),
-            _buildNavItem(
-              index: 3,
               icon: Icons.person_outline_rounded,
               onTap: () {
-                setState(() => _selectedNavIndex = 3);
+                setState(() => _selectedNavIndex = 2);
                 context.push(AppRoutes.settings);
               },
             ),

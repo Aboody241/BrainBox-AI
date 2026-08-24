@@ -21,7 +21,6 @@ void main() {
       );
       expect(find.text('Get Started'), findsOneWidget);
       expect(find.byIcon(Icons.home_rounded), findsOneWidget);
-      expect(find.byIcon(Icons.grid_view_rounded), findsOneWidget);
       expect(find.byIcon(Icons.access_time_rounded), findsOneWidget);
       expect(find.byIcon(Icons.person_outline_rounded), findsOneWidget);
     });
@@ -34,12 +33,12 @@ void main() {
         ),
       );
 
-      // Tap grid icon
-      await tester.tap(find.byIcon(Icons.grid_view_rounded));
-      await tester.pump();
-
       // Tap access time icon
       await tester.tap(find.byIcon(Icons.access_time_rounded));
+      await tester.pump();
+
+      // Tap home icon
+      await tester.tap(find.byIcon(Icons.home_rounded));
       await tester.pump();
     });
   });
