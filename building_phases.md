@@ -124,10 +124,10 @@ core/
 ```
 
 ### Tests:
-- [ ] Auth repository unit tests
-- [ ] Login use case unit tests
-- [ ] AuthViewModel state tests
-- [ ] Login widget tests
+- [x] Auth repository unit tests
+- [x] Login use case unit tests
+- [x] AuthViewModel state tests
+- [x] Login widget tests
 
 ---
 

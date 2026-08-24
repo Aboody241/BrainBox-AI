@@ -11,38 +11,47 @@ import '../../../../core/presentation/widgets/widgets.dart';
 import '../viewmodels/auth_state.dart';
 import '../viewmodels/auth_view_model.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
+  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
+    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
+  Future<void> _handleRegister() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final authVm = sl<AuthViewModel>();
-    final success = await authVm.login(
-      _emailController.text.trim(),
-      _passwordController.text,
+    final success = await authVm.register(
+      username: _usernameController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
     );
 
     if (!mounted) return;
 
     if (success) {
-      context.go(AppRoutes.home);
+      await context.push(
+        AppRoutes.verifyOtp,
+        extra: <String, dynamic>{
+          'target': _emailController.text.trim(),
+          'isEmail': true,
+        },
+      );
     } else {
       final state = authVm.state;
       if (state is AuthError) {
@@ -57,6 +66,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: AppColors.primary),
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: SafeArea(
         child: AppCenteredContent(
           maxWidth: AppBreakpoints.maxFormWidth,
@@ -72,15 +89,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: AppSpacing.xxl),
-                      const Icon(
-                        Icons.auto_awesome,
-                        size: 48,
-                        color: AppColors.primary,
-                      ),
-                      const SizedBox(height: AppSpacing.md),
                       Text(
-                        'Welcome Back',
+                        'Create Account',
                         textAlign: TextAlign.center,
                         style: AppTypography.displayMedium.copyWith(
                           color: AppColors.textPrimary,
@@ -89,13 +99,28 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
-                        'Sign in to continue with BrainBox AI',
+                        'Join BrainBox AI to unleash productivity',
                         textAlign: TextAlign.center,
                         style: AppTypography.bodyMedium.copyWith(
                           color: AppColors.textSecondary,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.xxl),
+                      AppTextField(
+                        controller: _usernameController,
+                        hintText: 'Full Name / Username',
+                        prefixIcon: const Icon(
+                          Icons.person_outline,
+                          color: AppColors.textfieldIcons,
+                        ),
+                        validator: (String? value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter your name';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
                       AppTextField(
                         controller: _emailController,
                         hintText: 'Email Address',
@@ -125,7 +150,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         validator: (String? value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter your password';
+                            return 'Please enter a password';
                           }
                           if (value.length < 6) {
                             return 'Password must be at least 6 characters';
@@ -135,31 +160,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: AppSpacing.xl),
                       AppButton.primary(
-                        text: 'Sign In',
+                        text: 'Sign Up',
                         isLoading: isLoading,
-                        onPressed: _handleLogin,
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Don\'t have an account? ',
-                            style: AppTypography.bodyMedium.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () => context.push(AppRoutes.register),
-                            child: Text(
-                              'Sign Up',
-                              style: AppTypography.titleSmall.copyWith(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ],
+                        onPressed: _handleRegister,
                       ),
                     ],
                   ),
