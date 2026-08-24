@@ -37,7 +37,7 @@ docs/
 - [x] Configure linting & analysis options
 - [x] Folder structure setup
 - [x] App theme configuration
-- Centralized routing setup
+- [x] Centralized routing setup
 - Dependency Injection (GetIt)
 - Core error system & typed Failure models
 - `Result<T>` abstraction (`Success` / `Failure`)

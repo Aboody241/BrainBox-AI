@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 
 class BrainBoxApp extends StatelessWidget {
@@ -7,15 +8,11 @@ class BrainBoxApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'BrainBox AI',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const Scaffold(
-        body: Center(
-          child: Text('BrainBox AI'),
-        ),
-      ),
+      routerConfig: AppRouter.router,
     );
   }
 }
