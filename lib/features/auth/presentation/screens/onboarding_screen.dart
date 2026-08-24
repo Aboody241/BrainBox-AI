@@ -89,10 +89,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: SafeArea(
         child: AppCenteredContent(
           maxWidth: AppBreakpoints.maxFormWidth,
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: AppSpacing.sm,
-          ),
+          padding: EdgeInsets.zero,
           child: Column(
             children: [
               // Top Action: Skip
@@ -101,7 +98,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: Padding(
                   padding: const EdgeInsets.only(
                     top: AppSpacing.xs,
-                    right: AppSpacing.sm,
+                    right: AppSpacing.lg,
                   ),
                   child: TextButton(
                     onPressed: _finishOnboarding,
@@ -127,29 +124,29 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   itemCount: _items.length,
                   itemBuilder: (context, index) {
                     final item = _items[index];
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                      ),
-                      child: Column(
-                        children: [
-                          // Flexible Hero Image with rounded corners and shadow
-                          Expanded(
-                            flex: 6,
+                    return Column(
+                      children: [
+                        // Full width Hero Image with rounded corners and shadow
+                        Expanded(
+                          flex: 6,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.md,
+                            ),
                             child: Container(
                               width: double.infinity,
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(28),
+                                borderRadius: BorderRadius.circular(32),
                                 boxShadow: const [
                                   BoxShadow(
-                                    color: Color(0x25000000),
-                                    blurRadius: 24,
-                                    offset: Offset(0, 10),
+                                    color: Color(0x30000000),
+                                    blurRadius: 28,
+                                    offset: Offset(0, 12),
                                   ),
                                 ],
                               ),
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(28),
+                                borderRadius: BorderRadius.circular(32),
                                 child: Image.asset(
                                   item.imagePath,
                                   fit: BoxFit.cover,
@@ -158,30 +155,35 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: AppSpacing.lg),
-                          // Dots indicator
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(
-                              _items.length,
-                              (dotIndex) => AnimatedContainer(
-                                duration: const Duration(milliseconds: 300),
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 4),
-                                width: _currentIndex == dotIndex ? 10 : 8,
-                                height: _currentIndex == dotIndex ? 10 : 8,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: _currentIndex == dotIndex
-                                      ? AppColors.primary
-                                      : const Color(0xFFC2C3CB),
-                                ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        // Dots indicator
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            _items.length,
+                            (dotIndex) => AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 4),
+                              width: _currentIndex == dotIndex ? 10 : 8,
+                              height: _currentIndex == dotIndex ? 10 : 8,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: _currentIndex == dotIndex
+                                    ? AppColors.primary
+                                    : const Color(0xFFC2C3CB),
                               ),
                             ),
                           ),
-                          const SizedBox(height: AppSpacing.lg),
-                          // Title
-                          Text(
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        // Title
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.xl,
+                          ),
+                          child: Text(
                             item.title,
                             textAlign: TextAlign.center,
                             style: AppTypography.displayMedium.copyWith(
@@ -191,9 +193,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          const SizedBox(height: AppSpacing.sm),
-                          // Subtitle
-                          Text(
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        // Subtitle
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.xl,
+                          ),
+                          child: Text(
                             item.subtitle,
                             textAlign: TextAlign.center,
                             style: AppTypography.bodySmall.copyWith(
@@ -202,9 +209,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               height: 1.4,
                             ),
                           ),
-                          const SizedBox(height: AppSpacing.md),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                      ],
                     );
                   },
                 ),
