@@ -74,7 +74,7 @@ main.dart
   - [x] Loading indicators & Shimmers
   - [x] Error banners & SnackBars
   - [x] Empty state placeholders
-  - Message bubble components
+  - [x] Message bubble components
   - Responsive layout rules
 
 ### الناتج:
