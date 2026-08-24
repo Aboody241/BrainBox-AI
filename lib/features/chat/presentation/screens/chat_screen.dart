@@ -321,31 +321,41 @@ class _ChatScreenState extends State<ChatScreen> {
                 vertical: 14,
               ),
               decoration: BoxDecoration(
-                color: const Color(0xFFECEEF1),
+                color: AppColors.primary,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 item.text,
                 style: AppTypography.bodyMedium.copyWith(
-                  color: AppColors.textPrimary,
+                  color: const Color.fromARGB(255, 255, 255, 255),
                   fontSize: 14.5,
                   height: 1.4,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: AppSpacing.xs),
-          IconButton(
-            icon: const Icon(
-              Icons.edit_outlined,
-              size: 20,
-              color: Color(0xFF9CA3AF),
+          // const SizedBox(width: AppSpacing.xs),
+          // IconButton(
+          //   icon: const Icon(
+          //     Icons.edit_outlined,
+          //     size: 20,
+          //     color: Color(0xFF9CA3AF),
+          //   ),
+          //   tooltip: 'Edit message',
+          //   onPressed: () {
+          //     _messageController.text = item.text;
+          //   },
+          // ),
+          SizedBox(width: AppSpacing.sm,),
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              shape: BoxShape.circle
             ),
-            tooltip: 'Edit message',
-            onPressed: () {
-              _messageController.text = item.text;
-            },
-          ),
+            
+          )
         ],
       ),
     );
@@ -355,9 +365,9 @@ class _ChatScreenState extends State<ChatScreen> {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: const Color(0xFFF6F7F9),
+        color: const Color.fromARGB(255, 237, 238, 241),
         borderRadius: BorderRadius.circular(22),
       ),
       child: Column(
@@ -392,11 +402,11 @@ class _ChatScreenState extends State<ChatScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    padding: const EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(2),
                     constraints: const BoxConstraints(),
                     icon: const Icon(
                       Icons.content_copy_outlined,
-                      size: 21,
+                      size: 18,
                       color: Color(0xFF9CA3AF),
                     ),
                     tooltip: 'Copy',
@@ -408,13 +418,13 @@ class _ChatScreenState extends State<ChatScreen> {
                       );
                     },
                   ),
-                  const SizedBox(width: AppSpacing.md),
+                  const SizedBox(width: AppSpacing.xxs),
                   IconButton(
-                    padding: const EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(2),
                     constraints: const BoxConstraints(),
                     icon: const Icon(
                       Icons.share_outlined,
-                      size: 21,
+                      size: 18,
                       color: Color(0xFF9CA3AF),
                     ),
                     tooltip: 'Share',
