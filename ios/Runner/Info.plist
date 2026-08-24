@@ -66,5 +66,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>BrainBox AI needs access to your photo library to attach images to your conversations.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>BrainBox AI needs access to your camera to take photos and analyze them.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>BrainBox AI needs access to your microphone for audio and video input.</string>
 </dict>
 </plist>
