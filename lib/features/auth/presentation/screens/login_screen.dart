@@ -211,7 +211,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Text(
                             'Sign up',
                             style: AppTypography.titleSmall.copyWith(
-                              color: const Color(0xFF9CA3AF),
+                              color: const Color.fromARGB(255, 0, 0, 0),
                               fontWeight: FontWeight.w600,
                               fontSize: 15,
                             ),
@@ -237,7 +237,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           Expanded(
                             child: SizedBox(
-                              height: 48,
+                              height: 50,
                               child: ElevatedButton(
                                 onPressed: () {
                                   // Mock Google Auth
@@ -279,7 +279,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(width: AppSpacing.md),
                           Expanded(
                             child: SizedBox(
-                              height: 48,
+                              height: 50,
                               child: ElevatedButton(
                                 onPressed: () {
                                   // Mock Facebook Auth
