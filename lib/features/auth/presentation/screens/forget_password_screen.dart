@@ -19,15 +19,17 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
   String _selectedOption = 'email';
 
   void _handleNext() {
-    final target =
-        _selectedOption == 'email' ? 'user@example.com' : '+1234567890';
-    context.push(
-      AppRoutes.verifyOtp,
-      extra: <String, dynamic>{
-        'target': target,
-        'isEmail': _selectedOption == 'email',
-      },
-    );
+    if (_selectedOption == 'phone') {
+      context.push(AppRoutes.enterPhone);
+    } else {
+      context.push(
+        AppRoutes.verifyOtp,
+        extra: <String, dynamic>{
+          'target': 'user@example.com',
+          'isEmail': true,
+        },
+      );
+    }
   }
 
   @override

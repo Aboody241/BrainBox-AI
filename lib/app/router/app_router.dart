@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/auth/presentation/screens/enter_phone_screen.dart';
 import '../../features/auth/presentation/screens/forget_password_screen.dart';
 import '../../features/auth/presentation/screens/login_form_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
@@ -47,6 +48,13 @@ abstract final class AppRouter {
         name: AppRoutes.forgetPasswordName,
         builder: (BuildContext context, GoRouterState state) {
           return const ForgetPasswordScreen();
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.enterPhone,
+        name: AppRoutes.enterPhoneName,
+        builder: (BuildContext context, GoRouterState state) {
+          return const EnterPhoneScreen();
         },
       ),
       GoRoute(
