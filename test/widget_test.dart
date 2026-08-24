@@ -13,7 +13,7 @@ void main() {
   });
 
   testWidgets(
-      'App renders 2-step splash animation and navigates to login screen',
+      'App renders 2-step splash animation and navigates to onboarding screen',
       (WidgetTester tester) async {
     await tester.pumpWidget(const BrainBoxApp());
 
@@ -25,10 +25,10 @@ void main() {
     await tester.pump(const Duration(milliseconds: 1300));
     await tester.pump(const Duration(milliseconds: 600));
 
-    // Step 3: Complete animation and navigate to LoginScreen
+    // Step 3: Complete animation and navigate to OnboardingScreen
     await tester.pump(const Duration(milliseconds: 1300));
     await tester.pumpAndSettle();
 
-    expect(find.text('Welcome Back'), findsOneWidget);
+    expect(find.text('Unlock the Power\nOf Future AI'), findsOneWidget);
   });
 }

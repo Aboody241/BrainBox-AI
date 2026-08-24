@@ -1,6 +1,7 @@
 abstract final class AppRoutes {
   // Path Constants
   static const String splash = '/splash';
+  static const String onboarding = '/onboarding';
   static const String login = '/login';
   static const String register = '/register';
   static const String verifyOtp = '/verify-otp';
@@ -10,6 +11,7 @@ abstract final class AppRoutes {
 
   // Named Routes
   static const String splashName = 'splash';
+  static const String onboardingName = 'onboarding';
   static const String loginName = 'login';
   static const String registerName = 'register';
   static const String verifyOtpName = 'verifyOtp';
