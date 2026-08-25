@@ -25,60 +25,7 @@ class ConversationLocalDataSourceImpl implements ConversationLocalDataSource {
 
   final SharedPreferences _prefs;
 
-  ConversationLocalDataSourceImpl(this._prefs) {
-    _ensureSeedData();
-  }
-
-  void _ensureSeedData() {
-    final raw = _prefs.getString(_conversationsKey);
-    if (raw == null || raw.isEmpty) {
-      final defaultSeed = [
-        ConversationModel(
-          id: '1',
-          title: 'Quantum Computing Concepts',
-          lastMessage:
-              'Quantum computing is a new type of computing that uses quantum mechanics to process information.',
-          updatedAt: DateTime.now().subtract(const Duration(minutes: 25)),
-          isPinned: true,
-        ),
-        ConversationModel(
-          id: '2',
-          title: 'Flutter Clean Architecture Guide',
-          lastMessage:
-              'Let’s organize the data, domain, and presentation layers with strong separation of concerns.',
-          updatedAt: DateTime.now().subtract(const Duration(hours: 3)),
-          isPinned: true,
-        ),
-        ConversationModel(
-          id: '3',
-          title: 'Tokyo 5-Day Travel Plan',
-          lastMessage:
-              'Here is your complete itinerary for exploring Shibuya, Asakusa, Akihabara, and Mount Fuji.',
-          updatedAt: DateTime.now().subtract(const Duration(days: 1, hours: 2)),
-          isPinned: false,
-        ),
-        ConversationModel(
-          id: '4',
-          title: 'Creative Story Ideas for Sci-Fi Novel',
-          lastMessage:
-              'In a world where memories can be transferred through neural synchronization...',
-          updatedAt: DateTime.now().subtract(const Duration(days: 3)),
-          isPinned: false,
-        ),
-        ConversationModel(
-          id: '5',
-          title: 'Weekly Workout & Nutrition Routine',
-          lastMessage:
-              'High protein meal plan combined with 4-day hypertrophy split focus.',
-          updatedAt: DateTime.now().subtract(const Duration(days: 5)),
-          isPinned: false,
-        ),
-      ];
-
-      final encoded = jsonEncode(defaultSeed.map((e) => e.toJson()).toList());
-      _prefs.setString(_conversationsKey, encoded);
-    }
-  }
+  ConversationLocalDataSourceImpl(this._prefs);
 
   @override
   Future<List<ConversationModel>> getConversations() async {

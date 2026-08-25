@@ -17,11 +17,9 @@ void main() {
       dataSource = ConversationLocalDataSourceImpl(prefs);
     });
 
-    test('initializes with seed conversations when cache is empty', () async {
+    test('initializes with empty conversations when cache is empty', () async {
       final conversations = await dataSource.getConversations();
-      expect(conversations.isNotEmpty, true);
-      expect(conversations.length, 5);
-      expect(conversations.first.isPinned, true);
+      expect(conversations.isEmpty, true);
     });
 
     test('saveConversation adds a new conversation to cache', () async {
@@ -36,28 +34,52 @@ void main() {
       await dataSource.saveConversation(newConv);
       final list = await dataSource.getConversations();
       expect(list.any((c) => c.id == 'new-100'), true);
+      expect(list.length, 1);
     });
 
     test('togglePin toggles pinned status and persists', () async {
-      final conversations = await dataSource.getConversations();
-      final target = conversations.first;
-      final originalPin = target.isPinned;
+      final newConv = ConversationModel(
+        id: 'new-100',
+        title: 'New AI Topic',
+        lastMessage: 'How to build neural networks',
+        updatedAt: DateTime.now(),
+        isPinned: false,
+      );
+      await dataSource.saveConversation(newConv);
 
-      final newPin = await dataSource.togglePin(target.id);
-      expect(newPin, !originalPin);
+      final newPin = await dataSource.togglePin('new-100');
+      expect(newPin, true);
     });
 
     test('renameConversation updates title and persists', () async {
-      await dataSource.renameConversation('1', 'Updated Title');
+      final newConv = ConversationModel(
+        id: 'new-100',
+        title: 'New AI Topic',
+        lastMessage: 'How to build neural networks',
+        updatedAt: DateTime.now(),
+        isPinned: false,
+      );
+      await dataSource.saveConversation(newConv);
+
+      await dataSource.renameConversation('new-100', 'Updated Title');
       final list = await dataSource.getConversations();
-      final updated = list.firstWhere((c) => c.id == '1');
+      final updated = list.firstWhere((c) => c.id == 'new-100');
       expect(updated.title, 'Updated Title');
     });
 
     test('deleteConversation removes conversation from cache', () async {
-      await dataSource.deleteConversation('1');
+      final newConv = ConversationModel(
+        id: 'new-100',
+        title: 'New AI Topic',
+        lastMessage: 'How to build neural networks',
+        updatedAt: DateTime.now(),
+        isPinned: false,
+      );
+      await dataSource.saveConversation(newConv);
+
+      await dataSource.deleteConversation('new-100');
       final list = await dataSource.getConversations();
-      expect(list.any((c) => c.id == '1'), false);
+      expect(list.any((c) => c.id == 'new-100'), false);
     });
 
     test('saveMessages and getMessages persist chat history', () async {

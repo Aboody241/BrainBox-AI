@@ -28,49 +28,6 @@ class _RecentChatsViewState extends State<RecentChatsView> {
 
   final List<ConversationItem> _conversations = [];
 
-  static final List<ConversationItem> _fallbackSeedConversations = [
-    ConversationItem(
-      id: '1',
-      title: 'Quantum Computing Concepts',
-      lastMessage:
-          'Quantum computing is a new type of computing that uses quantum mechanics to process information.',
-      updatedAt: DateTime.now().subtract(const Duration(minutes: 25)),
-      isPinned: true,
-    ),
-    ConversationItem(
-      id: '2',
-      title: 'Flutter Clean Architecture Guide',
-      lastMessage:
-          'Let’s organize the data, domain, and presentation layers with strong separation of concerns.',
-      updatedAt: DateTime.now().subtract(const Duration(hours: 3)),
-      isPinned: true,
-    ),
-    ConversationItem(
-      id: '3',
-      title: 'Tokyo 5-Day Travel Plan',
-      lastMessage:
-          'Here is your complete itinerary for exploring Shibuya, Asakusa, Akihabara, and Mount Fuji.',
-      updatedAt: DateTime.now().subtract(const Duration(days: 1, hours: 2)),
-      isPinned: false,
-    ),
-    ConversationItem(
-      id: '4',
-      title: 'Creative Story Ideas for Sci-Fi Novel',
-      lastMessage:
-          'In a world where memories can be transferred through neural synchronization...',
-      updatedAt: DateTime.now().subtract(const Duration(days: 3)),
-      isPinned: false,
-    ),
-    ConversationItem(
-      id: '5',
-      title: 'Weekly Workout & Nutrition Routine',
-      lastMessage:
-          'High protein meal plan combined with 4-day hypertrophy split focus.',
-      updatedAt: DateTime.now().subtract(const Duration(days: 5)),
-      isPinned: false,
-    ),
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -93,27 +50,11 @@ class _RecentChatsViewState extends State<RecentChatsView> {
         success: (list) {
           setState(() {
             _conversations.clear();
-            if (list.isEmpty) {
-              _conversations.addAll(_fallbackSeedConversations);
-            } else {
-              _conversations.addAll(list.map(ConversationItem.fromEntity));
-            }
+            _conversations.addAll(list.map(ConversationItem.fromEntity));
           });
         },
-        failure: (_) {
-          if (_conversations.isEmpty) {
-            setState(() {
-              _conversations.addAll(_fallbackSeedConversations);
-            });
-          }
-        },
+        failure: (_) {},
       );
-    } else {
-      if (_conversations.isEmpty) {
-        setState(() {
-          _conversations.addAll(_fallbackSeedConversations);
-        });
-      }
     }
   }
 
