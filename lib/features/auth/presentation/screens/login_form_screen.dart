@@ -75,10 +75,9 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: AppSpacing.xs),
                       // Top Reusable Back Button
                       const AppBackButton(),
-                      const SizedBox(height: AppSpacing.xl),
+                      const SizedBox(height: 150),
 
                       // Heading Title
                       Text(

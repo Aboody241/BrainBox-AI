@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/di/service_locator.dart';
 import '../../../../app/router/app_routes.dart';
+import '../../../../core/presentation/responsive/responsive.dart';
 import '../../../../core/presentation/theme/app_colors.dart';
 import '../../../../core/presentation/theme/app_spacing.dart';
 import '../../../../core/presentation/theme/app_typography.dart';
@@ -235,57 +236,66 @@ class _RecentChatsViewState extends State<RecentChatsView> {
     final grouped = _groupConversations(filtered);
     final hasItems = filtered.isNotEmpty;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header Row: Title, Search & New Chat Actions
-        _buildHeader(context),
-
-        const SizedBox(height: AppSpacing.sm),
-
-        // Collapsible Animated Search Bar
-        _buildAnimatedSearchBar(),
-
-        // Filter Chips (All / Pinned)
-        _buildFilterChips(),
-
-        const SizedBox(height: AppSpacing.xs),
-
-        // Grouped Conversations List or Empty State
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: _loadConversations,
-            color: AppColors.primary,
-            child: hasItems
-                ? ListView(
-                    physics: const AlwaysScrollableScrollPhysics(
-                      parent: BouncingScrollPhysics(),
-                    ),
-                    padding: const EdgeInsets.only(
-                      bottom: AppSpacing.xxl,
-                    ),
-                    children: [
-                      if (grouped['TODAY']!.isNotEmpty)
-                        _buildDateSection(
-                          title: 'TODAY',
-                          items: grouped['TODAY']!,
-                        ),
-                      if (grouped['YESTERDAY']!.isNotEmpty)
-                        _buildDateSection(
-                          title: 'YESTERDAY',
-                          items: grouped['YESTERDAY']!,
-                        ),
-                      if (grouped['PREVIOUS 7 DAYS']!.isNotEmpty)
-                        _buildDateSection(
-                          title: 'PREVIOUS 7 DAYS',
-                          items: grouped['PREVIOUS 7 DAYS']!,
-                        ),
-                    ],
-                  )
-                : _buildEmptyState(),
-          ),
+    return SafeArea(
+      child: AppCenteredContent(
+        maxWidth: AppBreakpoints.maxFormWidth,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.sm,
         ),
-      ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header Row: Title, Search & New Chat Actions
+            _buildHeader(context),
+
+            const SizedBox(height: AppSpacing.sm),
+
+            // Collapsible Animated Search Bar
+            _buildAnimatedSearchBar(),
+
+            // Filter Chips (All / Pinned)
+            _buildFilterChips(),
+
+            const SizedBox(height: AppSpacing.xs),
+
+            // Grouped Conversations List or Empty State
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: _loadConversations,
+                color: AppColors.primary,
+                child: hasItems
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(
+                          parent: BouncingScrollPhysics(),
+                        ),
+                        padding: const EdgeInsets.only(
+                          bottom: AppSpacing.xxl,
+                        ),
+                        children: [
+                          if (grouped['TODAY']!.isNotEmpty)
+                            _buildDateSection(
+                              title: 'TODAY',
+                              items: grouped['TODAY']!,
+                            ),
+                          if (grouped['YESTERDAY']!.isNotEmpty)
+                            _buildDateSection(
+                              title: 'YESTERDAY',
+                              items: grouped['YESTERDAY']!,
+                            ),
+                          if (grouped['PREVIOUS 7 DAYS']!.isNotEmpty)
+                            _buildDateSection(
+                              title: 'PREVIOUS 7 DAYS',
+                              items: grouped['PREVIOUS 7 DAYS']!,
+                            ),
+                        ],
+                      )
+                    : _buildEmptyState(),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -293,27 +303,29 @@ class _RecentChatsViewState extends State<RecentChatsView> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Recent chats',
-              style: AppTypography.displayLarge.copyWith(
-                fontSize: 28,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-                letterSpacing: -0.5,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Recent chats',
+                style: AppTypography.displayLarge.copyWith(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                  letterSpacing: -0.5,
+                ),
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              '${_conversations.length} conversation${_conversations.length == 1 ? '' : 's'} saved',
-              style: AppTypography.bodySmall.copyWith(
-                color: AppColors.textSecondary,
-                fontSize: 13,
+              const SizedBox(height: 2),
+              Text(
+                '${_conversations.length} conversation${_conversations.length == 1 ? '' : 's'} saved',
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         Row(
           mainAxisSize: MainAxisSize.min,

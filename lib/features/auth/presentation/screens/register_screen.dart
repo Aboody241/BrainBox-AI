@@ -84,10 +84,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: AppSpacing.xs),
                       // Top Reusable Back Button
                       const AppBackButton(),
-                      const SizedBox(height: AppSpacing.xl),
+                      const SizedBox(height: 80),
 
                       // Heading Title
                       Text(
@@ -333,7 +332,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 30),
                     ],
                   ),
                 ),
