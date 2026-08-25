@@ -44,7 +44,7 @@ void main() {
       final saveUseCase = sl<SaveConversationUseCase>();
       await saveUseCase(
         Conversation(
-          id: '1',
+          id: 'chat-test-1',
           title: 'Quantum Computing Concepts',
           lastMessage: 'Summary of quantum qubits',
           updatedAt: DateTime.now(),
@@ -53,7 +53,7 @@ void main() {
       );
       await saveUseCase(
         Conversation(
-          id: '2',
+          id: 'chat-test-2',
           title: 'Tokyo 5-Day Travel Plan',
           lastMessage: 'Explore Shibuya and Shinjuku',
           updatedAt: DateTime.now().subtract(const Duration(days: 1)),

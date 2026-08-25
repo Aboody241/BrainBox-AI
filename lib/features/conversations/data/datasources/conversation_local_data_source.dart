@@ -22,10 +22,35 @@ abstract interface class ConversationLocalDataSource {
 class ConversationLocalDataSourceImpl implements ConversationLocalDataSource {
   static const String _conversationsKey = 'brainbox_cached_conversations';
   static const String _chatPrefix = 'brainbox_chat_messages_';
+  static const Set<String> _legacyDummyIds = {'1', '2', '3', '4', '5'};
 
   final SharedPreferences _prefs;
 
-  ConversationLocalDataSourceImpl(this._prefs);
+  ConversationLocalDataSourceImpl(this._prefs) {
+    _cleanupLegacySeeds();
+  }
+
+  void _cleanupLegacySeeds() {
+    final raw = _prefs.getString(_conversationsKey);
+    if (raw != null && raw.isNotEmpty) {
+      try {
+        final List<dynamic> list = jsonDecode(raw) as List<dynamic>;
+        final models = list
+            .map((item) =>
+                ConversationModel.fromJson(item as Map<String, dynamic>))
+            .where((item) => !_legacyDummyIds.contains(item.id))
+            .toList();
+
+        final encoded = jsonEncode(models.map((e) => e.toJson()).toList());
+        _prefs.setString(_conversationsKey, encoded);
+
+        // Also clean up messages for legacy IDs
+        for (final id in _legacyDummyIds) {
+          _prefs.remove('$_chatPrefix$id');
+        }
+      } catch (_) {}
+    }
+  }
 
   @override
   Future<List<ConversationModel>> getConversations() async {
@@ -39,6 +64,7 @@ class ConversationLocalDataSourceImpl implements ConversationLocalDataSource {
       final models = list
           .map((item) =>
               ConversationModel.fromJson(item as Map<String, dynamic>))
+          .where((item) => !_legacyDummyIds.contains(item.id))
           .toList();
 
       // Sort: Pinned first, then by updatedAt descending
